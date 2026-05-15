@@ -13,8 +13,13 @@ const Dashboard = () => {
     if (!token) {
       navigate('/login');
     } else {
-      // In a real app, verify token with backend
-      setUser({ fullName: 'Demo User', email: 'user@example.com', role: 'Software Engineer' });
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        setUser(JSON.parse(storedUser));
+      } else {
+        // Fallback or fetch from API
+        setUser({ fullName: 'User', email: '...', role: 'Aspiring Professional' });
+      }
     }
   }, [navigate]);
 

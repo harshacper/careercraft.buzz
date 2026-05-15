@@ -85,6 +85,7 @@ router.post('/signup', async (req, res) => {
       _id: user.id, 
       fullName: user.full_name, 
       email: user.email, 
+      role: user.experience || 'Aspiring Professional',
       token: generateToken(user.id) 
     });
   } catch (error) {
@@ -128,6 +129,7 @@ router.post('/login', async (req, res) => {
         _id: user.id, 
         fullName: user.full_name, 
         email: user.email, 
+        role: user.experience || 'Aspiring Professional',
         token: generateToken(user.id) 
       });
     } else {
