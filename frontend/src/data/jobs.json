@@ -1,0 +1,20 @@
+[
+  {
+    "title": "Senior Frontend Developer",
+    "company": "TechCorp",
+    "match": 92,
+    "description": "Looking for an experienced React developer to lead our frontend team. Must have strong skills in React, Redux, and modern CSS."
+  },
+  {
+    "title": "Full Stack Engineer",
+    "company": "StartupX",
+    "match": 85,
+    "description": "Join our fast-paced startup building innovative solutions. Experience with Node.js and React required. Cloud experience is a plus."
+  },
+  {
+    "title": "UI/UX Developer",
+    "company": "DesignStudio",
+    "match": 78,
+    "description": "Seeking a developer with a strong eye for design. You will work closely with our designers to implement beautiful interfaces using React and Tailwind."
+  }
+]

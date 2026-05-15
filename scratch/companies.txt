@@ -1,0 +1,100 @@
+1. Google – https://careers.google.com
+2. Microsoft – https://careers.microsoft.com
+3. Amazon – https://www.amazon.jobs
+4. Apple – https://jobs.apple.com
+5. Meta – https://www.metacareers.com
+6. Netflix – https://jobs.netflix.com
+7. Tesla – https://www.tesla.com/careers
+8. NVIDIA – https://www.nvidia.com/en-us/about-nvidia/careers
+9. Adobe – https://careers.adobe.com
+10. Intel – https://jobs.intel.com
+11. Oracle – https://www.oracle.com/careers
+12. IBM – https://www.ibm.com/careers
+13. SAP – https://jobs.sap.com
+14. Salesforce – https://careers.salesforce.com
+15. Cisco – https://jobs.cisco.com
+16. Accenture – https://www.accenture.com/careers
+17. Capgemini – https://www.capgemini.com/careers
+18. Cognizant – https://careers.cognizant.com
+19. HCLTech – https://www.hcltech.com/careers
+20. Infosys – https://www.infosys.com/careers
+21. TCS – https://www.tcs.com/careers
+22. Wipro – https://careers.wipro.com
+23. Tech Mahindra – https://careers.techmahindra.com
+24. L&T Technology Services – https://careers.ltts.com
+25. Mindtree – https://www.ltimindtree.com/careers
+26. Zoho – https://www.zoho.com/careers
+27. Freshworks – https://www.freshworks.com/company/careers
+28. Paytm – https://paytm.com/careers
+29. PhonePe – https://www.phonepe.com/careers
+30. Razorpay – https://razorpay.com/jobs
+31. Uber – https://www.uber.com/careers
+32. Airbnb – https://careers.airbnb.com
+33. Spotify – https://www.spotifyjobs.com
+34. Dropbox – https://jobs.dropbox.com
+35. Stripe – https://stripe.com/jobs
+36. Square – https://careers.squareup.com
+37. Shopify – https://www.shopify.com/careers
+38. Flipkart – https://www.flipkartcareers.com
+39. Meesho – https://www.meesho.io/jobs
+40. Swiggy – https://careers.swiggy.com
+41. Goldman Sachs – https://www.goldmansachs.com/careers
+42. JPMorgan Chase – https://careers.jpmorgan.com
+43. Morgan Stanley – https://www.morganstanley.com/careers
+44. Deloitte – https://www2.deloitte.com/careers
+45. PwC – https://www.pwc.com/careers
+46. EY – https://careers.ey.com
+47. KPMG – https://home.kpmg/xx/en/home/careers.html
+48. HSBC – https://www.hsbc.com/careers
+49. American Express – https://careers.americanexpress.com
+50. Visa – https://jobs.visa.com
+51. General Electric – https://jobs.gecareers.com
+52. Siemens – https://jobs.siemens.com
+53. Bosch – https://www.bosch.com/careers
+54. Toyota – https://careers.toyota.com
+55. Ford – https://corporate.ford.com/careers
+56. Hyundai – https://www.hyundai.com/worldwide/en/company/careers
+57. Tata Motors – https://careers.tatamotors.com
+58. Mahindra – https://www.mahindra.com/careers
+59. Boeing – https://jobs.boeing.com
+60. Airbus – https://www.airbus.com/en/careers
+61. Pfizer – https://www.pfizer.com/careers
+62. Johnson & Johnson – https://careers.jnj.com
+63. Novartis – https://www.novartis.com/careers
+64. Roche – https://careers.roche.com
+65. Cipla – https://www.cipla.com/careers
+66. Sun Pharma – https://www.sunpharma.com/careers
+67. Dr Reddy's – https://careers.drreddys.com
+68. Apollo Hospitals – https://careers.apollohospitals.com
+69. Fortis Healthcare – https://www.fortishealthcare.com/careers
+70. Medtronic – https://www.medtronic.com/careers
+71. Walmart – https://careers.walmart.com
+72. Reliance Industries – https://careers.ril.com
+73. ITC – https://www.itcportal.com/careers
+74. Hindustan Unilever – https://careers.unilever.com
+75. Nestle – https://www.nestle.com/jobs
+76. Procter & Gamble – https://www.pgcareers.com
+77. PepsiCo – https://www.pepsicojobs.com
+78. Coca Cola – https://careers.coca-colacompany.com
+79. IKEA – https://jobs.ikea.com
+80. Aditya Birla Group – https://careers.adityabirla.com
+81. Dell – https://jobs.dell.com
+82. HP – https://jobs.hp.com
+83. Lenovo – https://jobs.lenovo.com
+84. Qualcomm – https://careers.qualcomm.com
+85. AMD – https://careers.amd.com
+86. Uber Eats – https://www.uber.com/careers
+87. Zomato – https://www.zomato.com/careers
+88. Byju's – https://byjus.com/careers
+89. Unacademy – https://unacademy.com/careers
+90. Coursera – https://careers.coursera.com
+91. Udemy – https://careers.udemy.com
+92. Twitter – https://careers.x.com
+93. Snapchat – https://careers.snap.com
+94. Pinterest – https://careers.pinterest.com
+95. Reddit – https://www.redditinc.com/careers
+96. Zoom – https://careers.zoom.us
+97. Slack – https://slack.com/careers
+98. Atlassian – https://www.atlassian.com/company/careers
+99. GitHub – https://github.careers
+100. Cloudflare – https://www.cloudflare.com/careers
