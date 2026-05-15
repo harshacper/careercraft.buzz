@@ -1,7 +1,8 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const { connectDB } = require('./config/db');
+// const { connectDB } = require('./config/db');
+const supabase = require('./config/supabase');
 
 const authRoutes = require('./routes/auth');
 const chatRoutes = require('./routes/chat');
@@ -12,8 +13,8 @@ const app = express();
 app.use(express.json({ limit: '10mb' })); // Increased limit for base64 resumes
 app.use(cors());
 
-// Connect to SQLite Database
-connectDB();
+// SQLite Database Connection disabled - using Supabase
+// connectDB();
 
 app.use('/api/auth', authRoutes);
 app.use('/api/chat', chatRoutes);
