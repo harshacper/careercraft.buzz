@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Send, User, Bot, Loader2 } from 'lucide-react';
-import axios from 'axios';
+import api from '../utils/api';
 
 const Chatbot = () => {
   const [messages, setMessages] = useState([
@@ -29,7 +29,7 @@ const Chatbot = () => {
     setLoading(true);
 
     try {
-      const res = await axios.post('http://localhost:5000/api/chat', { 
+      const res = await api.post('/chat', { 
         message: userMessage,
         context: "User is an aspiring software engineer looking for career guidance."
       });

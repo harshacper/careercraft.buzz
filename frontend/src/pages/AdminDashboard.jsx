@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../utils/api';
 import { LogOut, Users, Mail, Phone, Calendar, Briefcase, ShieldCheck, Activity } from 'lucide-react';
 
 const AdminDashboard = () => {
@@ -19,8 +19,8 @@ const AdminDashboard = () => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const endpoint = activeTab === 'users' ? '/api/admin/users' : '/api/admin/logs';
-        const res = await axios.get(`http://localhost:5000${endpoint}`);
+        const endpoint = activeTab === 'users' ? '/admin/users' : '/admin/logs';
+        const res = await api.get(endpoint);
         setData(res.data);
       } catch (err) {
         console.error('Error fetching data:', err);

@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import axios from 'axios';
+import api from '../utils/api';
 import { motion } from 'framer-motion';
 import { Target, BookOpen, Briefcase, Building2, TrendingUp, Download, AlertCircle, CheckCircle2, Star, Rocket, ChevronRight, FileText } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend } from 'recharts';
@@ -63,7 +63,7 @@ const SkillGap = () => {
       const jdBase64 = btoa(unescape(encodeURIComponent(jdText)));
 
       console.log('Sending request to backend...');
-      const response = await axios.post('http://localhost:5000/api/skill-gap/analyze', {
+      const response = await api.post('/skill-gap/analyze', {
         resumeContent: resumeBase64,
         resumeFileName: resumeName,
         jdContent: jdBase64,
