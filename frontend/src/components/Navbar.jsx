@@ -29,7 +29,6 @@ const Navbar = () => {
       </Link>
       <div className="hidden md:flex space-x-6 text-black font-medium">
         <Link to="/companies" className="hover:text-black flex items-center gap-1 transition-colors"><Building2 className="w-4 h-4"/> Companies</Link>
-        <Link to="/skill-gap" className="hover:text-black flex items-center gap-1 transition-colors"><BarChart className="w-4 h-4"/> Skill Gap</Link>
         <Link to="/resume" className="hover:text-black flex items-center gap-1 transition-colors"><FileText className="w-4 h-4"/> Resume</Link>
         <Link to="/notes" className="hover:text-black flex items-center gap-1 transition-colors"><BookOpen className="w-4 h-4"/> Notes</Link>
         <Link to="/chat" className="hover:text-black flex items-center gap-1 transition-colors"><MessageSquare className="w-4 h-4"/> AI Chat</Link>

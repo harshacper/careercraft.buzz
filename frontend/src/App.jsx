@@ -8,7 +8,6 @@ import Signup from './pages/Signup';
 import Dashboard from './pages/Dashboard';
 import Chatbot from './pages/Chatbot';
 import Companies from './pages/Companies';
-import SkillGap from './pages/SkillGap';
 import ResumeBuilder from './pages/ResumeBuilder';
 import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
@@ -27,7 +26,6 @@ function App() {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/chat" element={<Chatbot />} />
             <Route path="/companies" element={<Companies />} />
-            <Route path="/skill-gap" element={<SkillGap />} />
             <Route path="/resume" element={<ResumeBuilder />} />
             <Route path="/notes" element={<Notes />} />
             <Route path="/admin/login" element={<AdminLogin />} />

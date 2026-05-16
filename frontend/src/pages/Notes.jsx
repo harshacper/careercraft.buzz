@@ -142,13 +142,13 @@ const Notes = () => {
           className="mt-20 p-12 bg-darkGreen rounded-[40px] text-center text-white relative overflow-hidden shadow-2xl"
         >
           <div className="relative z-10">
-            <h2 className="text-3xl font-black mb-4">Need personalized guidance?</h2>
-            <p className="text-white/80 mb-8 max-w-xl mx-auto">Use our AI Career Navigator to identify your specific skill gaps and get a custom learning roadmap tailored to your target job role.</p>
+            <h2 className="text-3xl font-black mb-4">Stuck in your learning journey?</h2>
+            <p className="text-white/80 mb-8 max-w-xl mx-auto">Chat with our AI Career Coach to get instant answers to your technical questions and personalized study tips.</p>
             <button 
-              onClick={() => window.location.href = '/skill-gap'}
+              onClick={() => window.location.href = '/chat'}
               className="bg-white text-darkGreen px-8 py-4 rounded-2xl font-black hover:scale-105 transition-all shadow-xl flex items-center gap-2 mx-auto"
             >
-              Analyze My Skills <ChevronRight size={20} />
+              Talk to AI Coach <ChevronRight size={20} />
             </button>
           </div>
           {/* Decorative elements */}
