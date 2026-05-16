@@ -12,6 +12,7 @@ import SkillGap from './pages/SkillGap';
 import ResumeBuilder from './pages/ResumeBuilder';
 import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
+import Notes from './pages/Notes';
 
 function App() {
   return (
@@ -28,6 +29,7 @@ function App() {
             <Route path="/companies" element={<Companies />} />
             <Route path="/skill-gap" element={<SkillGap />} />
             <Route path="/resume" element={<ResumeBuilder />} />
+            <Route path="/notes" element={<Notes />} />
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
           </Routes>
