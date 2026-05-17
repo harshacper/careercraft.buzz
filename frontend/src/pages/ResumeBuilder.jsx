@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { UploadCloud, FileText, Settings, Download, Sparkles, Loader2, Copy, ChevronDown, ChevronUp } from 'lucide-react';
 import { motion } from 'framer-motion';
-import axios from 'axios';
+import api from '../utils/api';
 import ResumeTemplate from '../components/ResumeTemplate';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
@@ -62,7 +62,7 @@ const ResumeBuilder = () => {
       Experience: ${userDetails.experience}
       Return ONLY the summary text, without any quotes or extra formatting.`;
 
-      const res = await axios.post('http://localhost:5000/api/chat', { 
+      const res = await api.post('/chat', { 
         message: prompt,
         context: "Resume Summary Writer"
       });
@@ -98,7 +98,7 @@ const ResumeBuilder = () => {
       Skills: ${userDetails.skills}
       Provided Summary: ${userDetails.summary || "Generate one based on info."}`;
 
-      const res = await axios.post('http://localhost:5000/api/chat', { 
+      const res = await api.post('/chat', { 
         message: prompt,
         context: "Structured Resume Generation"
       });

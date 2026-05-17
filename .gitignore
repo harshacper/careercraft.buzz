@@ -30,3 +30,4 @@ Thumbs.db
 # Databases
 *.sqlite
 database.sqlite
+.vercel
