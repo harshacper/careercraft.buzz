@@ -1,39 +1,40 @@
 const express = require('express');
-const axios = require('axios');
+const Groq = require('groq-sdk');
 
 const router = express.Router();
 
 router.post('/', async (req, res) => {
   try {
     const { message, context } = req.body;
-    
-    const response = await axios.post('https://openrouter.ai/api/v1/chat/completions', {
-      model: 'openai/gpt-4o-mini',
+
+    if (!message) {
+      return res.status(400).json({ error: 'Message is required.' });
+    }
+
+    const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+
+    const chatCompletion = await groq.chat.completions.create({
+      model: 'llama3-70b-8192',
       messages: [
         {
           role: 'system',
-          content: `You are an AI Career Navigator chatbot. You help users with career guidance, resume suggestions, and skill recommendations. 
-          Special Tools:
-          - Doc Analyzer Engine: https://doc-analyzer--manjujakanahall.replit.app/ (Use this for deep document analysis and insights).
-          Context: ${JSON.stringify(context)}. Give professional, encouraging, and actionable advice. If the user asks about analyzing complex documents, refer them to our Doc Analyzer Engine.`
+          content: `You are an AI Career Navigator chatbot for CareerCraft. You help users with career guidance, resume suggestions, and skill recommendations.
+          Context: ${JSON.stringify(context)}. Give professional, encouraging, and actionable advice.`
         },
         {
           role: 'user',
           content: message
         }
-      ]
-    }, {
-      headers: {
-        'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
-        'Content-Type': 'application/json'
-      }
+      ],
+      temperature: 0.7,
+      max_tokens: 1024,
     });
 
-    const responseText = response.data.choices[0]?.message?.content || "I'm sorry, I couldn't generate a response.";
+    const responseText = chatCompletion.choices[0]?.message?.content || "I'm sorry, I couldn't generate a response.";
     res.json({ reply: responseText });
   } catch (error) {
-    console.error("OpenRouter AI Gen Error:", error.response ? error.response.data : error.message);
-    res.status(500).json({ error: "AI Service is temporarily unavailable. Please check your API key." });
+    console.error("Groq AI Error:", error.message || error);
+    res.status(500).json({ error: "AI Service is temporarily unavailable. Please try again later." });
   }
 });
 
