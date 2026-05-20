@@ -192,33 +192,33 @@ const Payment = () => {
         </div>
 
         {/* Tier 2: Monthly Pro */}
-        <div className="p-8 bg-black text-white border border-zinc-800 rounded-3xl flex flex-col justify-between hover:shadow-2xl transition-all duration-300 relative overflow-hidden shadow-md">
-          <div className="absolute top-0 right-0 bg-white text-black px-4 py-1.5 rounded-bl-xl text-xs font-black tracking-widest uppercase border-l border-b border-zinc-800">Popular</div>
-          <div className="absolute -bottom-20 -left-20 w-48 h-48 bg-white/5 rounded-full blur-2xl"></div>
+        <div className="p-8 bg-white border-2 border-gray-100 rounded-3xl flex flex-col justify-between hover:shadow-xl transition-all duration-300 relative group overflow-hidden shadow-sm">
+          <div className="absolute top-0 right-0 bg-black text-white px-4 py-1.5 rounded-bl-xl text-xs font-black tracking-widest uppercase border-l border-b border-gray-100">Popular</div>
+          <div className="absolute -bottom-20 -left-20 w-48 h-48 bg-blue-50/50 rounded-full blur-2xl"></div>
           <div>
-            <h3 className="text-2xl font-black text-white">Monthly Unlimited</h3>
-            <p className="text-sm text-zinc-400 mt-1">Best for active job hunters</p>
+            <h3 className="text-2xl font-black text-black">Monthly Unlimited</h3>
+            <p className="text-sm text-gray-500 mt-1">Best for active job hunters</p>
             
             <div className="my-8 flex items-baseline gap-1">
-              <span className="text-5xl font-black text-white">₹150</span>
-              <span className="text-zinc-400 font-medium text-sm">/ month</span>
+              <span className="text-5xl font-black text-black">₹150</span>
+              <span className="text-gray-500 font-medium text-sm">/ month</span>
             </div>
 
-            <ul className="space-y-4 text-sm text-zinc-300 mb-8 border-t border-zinc-800 pt-6">
+            <ul className="space-y-4 text-sm text-gray-700 mb-8 border-t border-gray-100 pt-6">
               <li className="flex items-center gap-3">
-                <div className="bg-zinc-800 p-1 rounded-full"><Check size={14} className="text-white font-bold" /></div>
+                <div className="bg-emerald-100 p-1 rounded-full"><Check size={14} className="text-emerald-600 font-bold" /></div>
                 <span className="font-medium">Unlimited downloads & revisions</span>
               </li>
               <li className="flex items-center gap-3">
-                <div className="bg-zinc-800 p-1 rounded-full"><Check size={14} className="text-white font-bold" /></div>
+                <div className="bg-emerald-100 p-1 rounded-full"><Check size={14} className="text-emerald-600 font-bold" /></div>
                 <span className="font-medium">Unlimited AI Resume builder & suggests</span>
               </li>
               <li className="flex items-center gap-3">
-                <div className="bg-zinc-800 p-1 rounded-full"><Check size={14} className="text-white font-bold" /></div>
+                <div className="bg-emerald-100 p-1 rounded-full"><Check size={14} className="text-emerald-600 font-bold" /></div>
                 <span className="font-medium">Full ATS Analyzer & scoring breakdowns</span>
               </li>
               <li className="flex items-center gap-3">
-                <div className="bg-zinc-800 p-1 rounded-full"><Check size={14} className="text-white font-bold" /></div>
+                <div className="bg-emerald-100 p-1 rounded-full"><Check size={14} className="text-emerald-600 font-bold" /></div>
                 <span className="font-medium">Priority AI chatbot answers</span>
               </li>
             </ul>
@@ -226,7 +226,7 @@ const Payment = () => {
 
           <button 
             onClick={() => handleOpenCheckout('monthly')}
-            className="w-full bg-white text-black py-3.5 rounded-xl font-black hover:bg-zinc-100 shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2"
+            className="w-full bg-black text-white py-3.5 rounded-xl font-black hover:bg-zinc-800 shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2"
           >
             <Sparkles size={18} /> Go Pro Unlimited
           </button>
@@ -317,38 +317,26 @@ const Payment = () => {
                   <form onSubmit={handlePay} className="space-y-4">
                     {paymentMethod === 'upi' && (
                       <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
-                        {/* Fake QR code */}
+                        {/* Real UPI QR code using qrserver */}
                         <div className="flex flex-col items-center p-4 bg-gray-50 border border-gray-100 rounded-2xl">
-                          <div className="w-32 h-32 bg-white p-2 border border-gray-200 rounded-xl relative flex items-center justify-center shadow-inner">
-                            {/* Visual QR simulation */}
-                            <svg viewBox="0 0 100 100" className="w-full h-full text-gray-800">
-                              <rect width="25" height="25" fill="currentColor"/>
-                              <rect x="75" width="25" height="25" fill="currentColor"/>
-                              <rect y="75" width="25" height="25" fill="currentColor"/>
-                              <rect x="6" y="6" width="13" height="13" fill="white"/>
-                              <rect x="81" y="6" width="13" height="13" fill="white"/>
-                              <rect x="6" y="81" width="13" height="13" fill="white"/>
-                              {/* Mock code bits */}
-                              <rect x="35" y="10" width="10" height="5" fill="currentColor"/>
-                              <rect x="55" y="15" width="5" height="15" fill="currentColor"/>
-                              <rect x="40" y="30" width="20" height="5" fill="currentColor"/>
-                              <rect x="10" y="45" width="15" height="10" fill="currentColor"/>
-                              <rect x="30" y="50" width="10" height="15" fill="currentColor"/>
-                              <rect x="50" y="45" width="15" height="5" fill="currentColor"/>
-                              <rect x="70" y="55" width="20" height="10" fill="currentColor"/>
-                              <rect x="80" y="35" width="10" height="10" fill="currentColor"/>
-                              <rect x="80" y="75" width="10" height="15" fill="currentColor"/>
-                              <rect x="45" y="75" width="15" height="10" fill="currentColor"/>
-                            </svg>
-                            <div className="absolute inset-0 flex items-center justify-center bg-white/90 backdrop-blur-[1px] opacity-0 hover:opacity-100 transition-opacity">
+                          <div className="w-40 h-40 bg-white p-2 border border-gray-200 rounded-xl relative flex items-center justify-center shadow-inner overflow-hidden">
+                            <img 
+                              src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(
+                                `upi://pay?pa=9380268436-a19a@ybl&pn=CareerSteps&am=${selectedPlan === 'single' ? '50' : '150'}&cu=INR`
+                              )}`} 
+                              alt="Scan to Pay" 
+                              className="w-full h-full object-contain"
+                            />
+                            <div className="absolute inset-0 flex items-center justify-center bg-white/95 backdrop-blur-[1px] opacity-0 hover:opacity-100 transition-opacity">
                               <span className="text-[10px] font-black text-darkGreen px-2 py-1 bg-green-50 rounded border border-green-200">SCAN TO PAY</span>
                             </div>
                           </div>
-                          <span className="text-[10px] text-gray-400 mt-2 font-semibold uppercase tracking-wider">Scan using GPay, PhonePe, or Paytm</span>
+                          <span className="text-xs text-gray-800 font-bold mt-3">UPI ID: 9380268436-a19a@ybl</span>
+                          <span className="text-[10px] text-gray-400 mt-1 font-semibold uppercase tracking-wider">Scan using GPay, PhonePe, or Paytm</span>
                         </div>
 
                         <div>
-                          <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Or Enter UPI ID</label>
+                          <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Or Enter Your UPI ID</label>
                           <input 
                             required
                             type="text"
