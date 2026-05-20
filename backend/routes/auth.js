@@ -140,4 +140,72 @@ router.post('/login', async (req, res) => {
   }
 });
 
+// Google Login / Signup
+router.post('/google-login', async (req, res) => {
+  try {
+    const { email, fullName } = req.body;
+    
+    // Check if user exists
+    let { data: user, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('email', email)
+      .maybeSingle();
+
+    if (!user) {
+      // Create a new user with dummy hashed password
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash('google-auth-mock-bypass-' + Math.random(), salt);
+      
+      const { data: newUser, error: insertError } = await supabase
+        .from('users')
+        .insert([
+          { 
+            full_name: fullName, 
+            email, 
+            phone_number: 'N/A', 
+            password: hashedPassword, 
+            gender: 'other', 
+            qualification: 'N/A', 
+            experience: 'Google Authorized User',
+            last_ip: req.ip
+          }
+        ])
+        .select()
+        .single();
+
+      if (insertError) throw insertError;
+      user = newUser;
+    } else {
+      // Update last IP
+      await supabase
+        .from('users')
+        .update({ last_ip: req.ip })
+        .eq('id', user.id);
+    }
+
+    // Log the login attempt
+    await supabase
+      .from('login_details')
+      .insert([
+        {
+          email,
+          ip_address: req.ip,
+          status: 'Success',
+          user_agent: req.headers['user-agent']
+        }
+      ]);
+
+    res.json({ 
+      _id: user.id, 
+      fullName: user.full_name, 
+      email: user.email, 
+      role: user.experience || 'Google Authorized User',
+      token: generateToken(user.id) 
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 module.exports = router;
