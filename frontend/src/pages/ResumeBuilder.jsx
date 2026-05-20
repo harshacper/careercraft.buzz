@@ -1,13 +1,26 @@
-import React, { useState } from 'react';
-import { UploadCloud, FileText, Settings, Download, Sparkles, Loader2, Copy, ChevronDown, ChevronUp } from 'lucide-react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect } from 'react';
+import { UploadCloud, FileText, Settings, Download, Sparkles, Loader2, Copy, ChevronDown, ChevronUp, Lock, ShieldAlert, ArrowRight } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 import ResumeTemplate from '../components/ResumeTemplate';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 
 const ResumeBuilder = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('analyzer'); // analyzer | builder
+  const [userStatus, setUserStatus] = useState({ subscription: 'none', credits: 0 });
+  const [isUnlockModalOpen, setIsUnlockModalOpen] = useState(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      api.get('/payment/status')
+        .then(res => setUserStatus(res.data))
+        .catch(err => console.error("Error loading subscription status:", err));
+    }
+  }, []);
   const [file, setFile] = useState(null);
   const [analyzing, setAnalyzing] = useState(false);
   const [result, setResult] = useState(null);
@@ -133,6 +146,34 @@ const ResumeBuilder = () => {
   };
 
   const downloadPDF = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert("Please log in or sign up to download your resume.");
+      navigate('/login');
+      return;
+    }
+
+    // Gate checks: user needs subscription OR credits > 0
+    if (userStatus.subscription !== 'monthly' && userStatus.credits <= 0) {
+      setIsUnlockModalOpen(true);
+      return;
+    }
+
+    // Deduct credit if they have credits and no monthly plan
+    if (userStatus.subscription !== 'monthly' && userStatus.credits > 0) {
+      const confirmDownload = window.confirm(`This will consume 1 resume credit (${userStatus.credits} remaining). Do you want to proceed?`);
+      if (!confirmDownload) return;
+
+      try {
+        const res = await api.post('/payment/consume');
+        setUserStatus(res.data.status);
+      } catch (err) {
+        console.error("Error consuming download credit:", err);
+        alert("Failed to verify download credit. Please try again.");
+        return;
+      }
+    }
+
     const element = document.getElementById('resume-content');
     const canvas = await html2canvas(element, { scale: 2 });
     const data = canvas.toDataURL('image/png');
@@ -338,6 +379,66 @@ const ResumeBuilder = () => {
            </div>
         </div>
       )}
+      <AnimatePresence>
+        {isUnlockModalOpen && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="bg-white rounded-3xl w-full max-w-md p-8 shadow-2xl border border-gray-100 flex flex-col text-center"
+            >
+              <div className="w-16 h-16 bg-amber-50 rounded-full flex items-center justify-center text-amber-500 mx-auto mb-6 border border-amber-100">
+                <Lock size={28} />
+              </div>
+
+              <h3 className="text-2xl font-black text-gray-900 mb-2">Unlock Resume Download</h3>
+              <p className="text-gray-600 text-sm mb-6">
+                Premium templates and PDF exports are locked on the Free tier. Choose a plan to unlock now!
+              </p>
+
+              <div className="space-y-3 mb-8 text-left">
+                <div 
+                  onClick={() => { setIsUnlockModalOpen(false); navigate('/payment'); }}
+                  className="p-4 border border-gray-100 bg-gray-50/50 hover:bg-green-50/50 hover:border-darkGreen rounded-2xl cursor-pointer flex justify-between items-center transition-all group"
+                >
+                  <div>
+                    <h4 className="font-bold text-gray-800 text-sm group-hover:text-darkGreen transition-colors">Single Resume Unlock</h4>
+                    <p className="text-xs text-gray-400 mt-0.5">Unlock this resume draft immediately</p>
+                  </div>
+                  <span className="font-black text-darkGreen text-base">₹50</span>
+                </div>
+
+                <div 
+                  onClick={() => { setIsUnlockModalOpen(false); navigate('/payment'); }}
+                  className="p-4 border border-gray-100 bg-gray-50/50 hover:bg-green-50/50 hover:border-darkGreen rounded-2xl cursor-pointer flex justify-between items-center transition-all group"
+                >
+                  <div>
+                    <h4 className="font-bold text-gray-800 text-sm group-hover:text-darkGreen transition-colors">Monthly Unlimited Pro</h4>
+                    <p className="text-xs text-gray-400 mt-0.5">Unlimited PDF downloads & AI features</p>
+                  </div>
+                  <span className="font-black text-darkGreen text-base">₹150</span>
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <button 
+                  onClick={() => setIsUnlockModalOpen(false)}
+                  className="flex-1 border-2 border-gray-200 text-gray-500 hover:bg-gray-50 py-3.5 rounded-xl font-bold transition-all text-sm"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={() => { setIsUnlockModalOpen(false); navigate('/payment'); }}
+                  className="flex-1 bg-darkGreen hover:bg-opacity-95 text-white py-3.5 rounded-xl font-bold hover:shadow-lg transition-all text-sm flex items-center justify-center gap-1.5"
+                >
+                  Go to Pricing <ArrowRight size={16} />
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, User, FileText, CheckCircle, TrendingUp, BookOpen, ChevronRight } from 'lucide-react';
+import { LogOut, User, FileText, CheckCircle, TrendingUp, BookOpen, ChevronRight, CreditCard, ShieldCheck } from 'lucide-react';
 import { motion } from 'framer-motion';
+import api from '../utils/api';
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
+  const [userStatus, setUserStatus] = useState({ subscription: 'none', credits: 0 });
 
   useEffect(() => {
     // Mock user retrieval
@@ -20,6 +22,13 @@ const Dashboard = () => {
         // Fallback or fetch from API
         setUser({ fullName: 'User', email: '...', role: 'Aspiring Professional' });
       }
+
+      // Fetch subscription status
+      api.get('/payment/status')
+        .then(res => {
+          setUserStatus(res.data);
+        })
+        .catch(err => console.error("Error loading subscription status:", err));
     }
   }, [navigate]);
 
@@ -58,10 +67,36 @@ const Dashboard = () => {
               <span className="text-gray-500">Current Role</span>
               <span className="font-medium">{user.role}</span>
             </div>
+            <div className="flex justify-between py-2 border-b border-gray-100">
+              <span className="text-gray-500">Active Plan</span>
+              <span className="font-bold text-darkGreen flex items-center gap-1">
+                {userStatus.subscription === 'monthly' ? (
+                  <>
+                    <ShieldCheck className="w-4 h-4 text-emerald-600" /> Pro Member
+                  </>
+                ) : (
+                  'Free Tier'
+                )}
+              </span>
+            </div>
+            <div className="flex justify-between py-2 border-b border-gray-100">
+              <span className="text-gray-500">Resume Credits</span>
+              <span className="font-bold">{userStatus.credits} remaining</span>
+            </div>
           </div>
-          <button className="mt-8 w-full bg-darkGreen text-white hover:bg-opacity-90 py-3 rounded-lg font-bold transition-colors">
-            Edit Profile
-          </button>
+          <div className="mt-6 flex flex-col sm:flex-row gap-3">
+            <button className="flex-1 bg-darkGreen text-white hover:bg-opacity-90 py-3 rounded-lg font-bold transition-colors">
+              Edit Profile
+            </button>
+            {userStatus.subscription !== 'monthly' && (
+              <button 
+                onClick={() => navigate('/payment')}
+                className="flex-1 bg-amber-500 hover:bg-amber-600 text-white py-3 rounded-lg font-bold transition-colors flex items-center justify-center gap-2"
+              >
+                <CreditCard size={18} /> Get Premium
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Learning Resources Card */}

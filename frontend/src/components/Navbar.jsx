@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Briefcase, MessageSquare, Building2, BarChart, FileText, UserCircle, BookOpen } from 'lucide-react';
+import { Briefcase, MessageSquare, Building2, BarChart, FileText, UserCircle, BookOpen, CreditCard } from 'lucide-react';
 
 const Navbar = () => {
   return (
@@ -32,6 +32,7 @@ const Navbar = () => {
         <Link to="/resume" className="hover:text-black flex items-center gap-1 transition-colors"><FileText className="w-4 h-4"/> Resume</Link>
         <Link to="/notes" className="hover:text-black flex items-center gap-1 transition-colors"><BookOpen className="w-4 h-4"/> Notes</Link>
         <Link to="/chat" className="hover:text-black flex items-center gap-1 transition-colors"><MessageSquare className="w-4 h-4"/> AI Chat</Link>
+        <Link to="/payment" className="hover:text-black flex items-center gap-1 transition-colors"><CreditCard className="w-4 h-4"/> Pricing</Link>
       </div>
       <div className="flex gap-4 items-center">
         <Link to="/login" className="text-black font-semibold hover:opacity-80 transition-opacity">Login</Link>
