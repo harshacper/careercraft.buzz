@@ -10,6 +10,7 @@ const Signup = () => {
   const [error, setError] = useState('');
   const [isGoogleModalOpen, setIsGoogleModalOpen] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [googleEmailInput, setGoogleEmailInput] = useState('');
   const navigate = useNavigate();
 
   const handleChange = (e) => setFormData({...formData, [e.target.name]: e.target.value});
@@ -145,44 +146,43 @@ const Signup = () => {
                 <span className="text-xs font-semibold text-gray-500">Connecting to Google...</span>
               </div>
             ) : (
-              <div className="space-y-3">
-                <button 
-                  onClick={() => handleGoogleAccountSelect('harsha8453@gmail.com', 'Harsha Vardhana')}
-                  className="w-full p-3.5 border border-gray-200 rounded-xl hover:bg-gray-50 text-left flex items-center gap-3 transition-all"
-                >
-                  <div className="w-8 h-8 rounded-full bg-darkGreen text-white font-bold flex items-center justify-center text-sm">H</div>
-                  <div>
-                    <div className="text-sm font-semibold text-gray-800">Harsha Vardhana</div>
-                    <div className="text-[11px] text-gray-400">harsha8453@gmail.com</div>
+              <form onSubmit={(e) => {
+                e.preventDefault();
+                if (!googleEmailInput) return;
+                const prefix = googleEmailInput.split('@')[0];
+                const displayName = prefix.charAt(0).toUpperCase() + prefix.slice(1);
+                handleGoogleAccountSelect(googleEmailInput, displayName);
+              }} className="space-y-4">
+                <div>
+                  <input 
+                    type="email" 
+                    required
+                    value={googleEmailInput}
+                    onChange={e => setGoogleEmailInput(e.target.value)}
+                    placeholder="Email or phone"
+                    className="w-full px-4 py-3.5 rounded-lg border border-gray-300 focus:border-[#4285F4] focus:ring-2 focus:ring-[#4285F4]/20 outline-none transition-all text-sm text-black"
+                  />
+                  <div className="text-[11px] text-gray-500 mt-2 leading-relaxed">
+                    To continue, Google will share your name, email address, language preference, and profile picture with CareerSteps.
                   </div>
-                </button>
-                
-                <button 
-                  onClick={() => handleGoogleAccountSelect('careercraft.test@gmail.com', 'Test User')}
-                  className="w-full p-3.5 border border-gray-200 rounded-xl hover:bg-gray-50 text-left flex items-center gap-3 transition-all"
-                >
-                  <div className="w-8 h-8 rounded-full bg-blue-600 text-white font-bold flex items-center justify-center text-sm">T</div>
-                  <div>
-                    <div className="text-sm font-semibold text-gray-800">Test User</div>
-                    <div className="text-[11px] text-gray-400">careercraft.test@gmail.com</div>
-                  </div>
-                </button>
+                </div>
 
-                <div className="pt-4 border-t border-gray-100 flex justify-between">
+                <div className="pt-4 border-t border-gray-100 flex justify-between items-center">
                   <button 
+                    type="button"
                     onClick={() => setIsGoogleModalOpen(false)}
-                    className="text-xs font-bold text-gray-400 hover:text-gray-600"
+                    className="text-sm font-bold text-gray-500 hover:text-gray-700"
                   >
                     Cancel
                   </button>
                   <button 
-                    onClick={() => handleGoogleAccountSelect('guest.professional@gmail.com', 'Guest Professional')}
-                    className="text-xs font-bold text-[#4285F4] hover:underline"
+                    type="submit"
+                    className="px-5 py-2.5 bg-[#4285F4] text-white font-bold rounded-lg text-sm hover:bg-[#357ae8] transition-all shadow-sm"
                   >
-                    Use guest account
+                    Next
                   </button>
                 </div>
-              </div>
+              </form>
             )}
           </div>
         </div>
