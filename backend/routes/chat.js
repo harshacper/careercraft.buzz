@@ -36,8 +36,9 @@ Context: ${JSON.stringify(context)}. Give professional, encouraging, and actiona
     const responseText = response.data?.content?.[0]?.text || "I'm sorry, I couldn't generate a response.";
     res.json({ reply: responseText });
   } catch (error) {
-    console.error("Anthropic Claude API Error:", error.response?.data || error.message || error);
-    res.status(500).json({ error: "AI Service is temporarily unavailable. Please try again later." });
+    const errorDetails = error.response?.data?.error?.message || error.response?.data || error.message || error;
+    console.error("Anthropic Claude API Error:", errorDetails);
+    res.status(500).json({ error: `AI Error: ${typeof errorDetails === 'object' ? JSON.stringify(errorDetails) : errorDetails}` });
   }
 });
 
