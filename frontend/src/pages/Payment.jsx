@@ -152,81 +152,81 @@ const Payment = () => {
       {/* Pricing Cards */}
       <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
         {/* Tier 1: Single Download */}
-        <div className="glassmorphism p-8 bg-white border border-gray-100 flex flex-col justify-between hover:shadow-xl transition-all duration-300 relative group overflow-hidden">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-blue-50/50 rounded-bl-full -z-10 group-hover:scale-110 transition-transform"></div>
+        <div className="p-8 bg-white border-2 border-gray-100 rounded-3xl flex flex-col justify-between hover:shadow-xl transition-all duration-300 relative group overflow-hidden shadow-sm">
+          <div className="absolute top-0 right-0 w-24 h-24 bg-gray-50 rounded-bl-full -z-10 group-hover:scale-110 transition-transform"></div>
           <div>
-            <h3 className="text-2xl font-black text-gray-800">Single Resume Unlock</h3>
+            <h3 className="text-2xl font-black text-black">Single Resume Unlock</h3>
             <p className="text-sm text-gray-500 mt-1">Best for one-time job applications</p>
             
             <div className="my-8 flex items-baseline gap-1">
-              <span className="text-5xl font-black text-gray-900">₹50</span>
+              <span className="text-5xl font-black text-black">₹50</span>
               <span className="text-gray-500 font-medium text-sm">/ resume download</span>
             </div>
 
-            <ul className="space-y-4 text-sm text-gray-600 mb-8 border-t border-gray-100 pt-6">
+            <ul className="space-y-4 text-sm text-gray-700 mb-8 border-t border-gray-100 pt-6">
               <li className="flex items-center gap-3">
-                <div className="bg-emerald-100 p-1 rounded-full"><Check size={14} className="text-emerald-600 font-bold" /></div>
-                <span>Unlock download of 1 resume draft</span>
+                <div className="bg-gray-100 p-1 rounded-full"><Check size={14} className="text-black font-bold" /></div>
+                <span className="font-medium">Unlock download of 1 resume draft</span>
               </li>
               <li className="flex items-center gap-3">
-                <div className="bg-emerald-100 p-1 rounded-full"><Check size={14} className="text-emerald-600 font-bold" /></div>
-                <span>High-resolution PDF export</span>
+                <div className="bg-gray-100 p-1 rounded-full"><Check size={14} className="text-black font-bold" /></div>
+                <span className="font-medium">High-resolution PDF export</span>
               </li>
               <li className="flex items-center gap-3">
-                <div className="bg-emerald-100 p-1 rounded-full"><Check size={14} className="text-emerald-600 font-bold" /></div>
-                <span>All resume templates included</span>
+                <div className="bg-gray-100 p-1 rounded-full"><Check size={14} className="text-black font-bold" /></div>
+                <span className="font-medium">All resume templates included</span>
               </li>
               <li className="flex items-center gap-3 text-gray-400">
-                <div className="bg-gray-100 p-1 rounded-full"><Check size={14} className="text-gray-400" /></div>
-                <span>No monthly recurrences</span>
+                <div className="bg-gray-50 p-1 rounded-full"><Check size={14} className="text-gray-300" /></div>
+                <span className="font-medium">No monthly recurrences</span>
               </li>
             </ul>
           </div>
 
           <button 
             onClick={() => handleOpenCheckout('single')}
-            className="w-full bg-white text-darkGreen border-2 border-darkGreen py-3.5 rounded-xl font-bold hover:bg-darkGreen hover:text-white hover:shadow-md transition-all duration-300"
+            className="w-full bg-white text-black border-2 border-black py-3.5 rounded-xl font-bold hover:bg-black hover:text-white hover:shadow-md transition-all duration-300"
           >
             Choose Single Unlock
           </button>
         </div>
 
         {/* Tier 2: Monthly Pro */}
-        <div className="glassmorphism p-8 bg-[#092e20] text-white border border-[#0d442f] flex flex-col justify-between hover:shadow-2xl transition-all duration-300 relative overflow-hidden">
-          <div className="absolute top-0 right-0 bg-[#1f83c6] text-white px-4 py-1.5 rounded-bl-xl text-xs font-black tracking-widest uppercase">Popular</div>
-          <div className="absolute -bottom-20 -left-20 w-48 h-48 bg-[#1f83c6]/10 rounded-full blur-2xl"></div>
+        <div className="p-8 bg-black text-white border border-zinc-800 rounded-3xl flex flex-col justify-between hover:shadow-2xl transition-all duration-300 relative overflow-hidden shadow-md">
+          <div className="absolute top-0 right-0 bg-white text-black px-4 py-1.5 rounded-bl-xl text-xs font-black tracking-widest uppercase border-l border-b border-zinc-800">Popular</div>
+          <div className="absolute -bottom-20 -left-20 w-48 h-48 bg-white/5 rounded-full blur-2xl"></div>
           <div>
-            <h3 className="text-2xl font-black">Monthly Unlimited</h3>
-            <p className="text-sm text-green-200 mt-1">Best for active job hunters</p>
+            <h3 className="text-2xl font-black text-white">Monthly Unlimited</h3>
+            <p className="text-sm text-zinc-400 mt-1">Best for active job hunters</p>
             
             <div className="my-8 flex items-baseline gap-1">
-              <span className="text-5xl font-black">₹150</span>
-              <span className="text-green-200 font-medium text-sm">/ month</span>
+              <span className="text-5xl font-black text-white">₹150</span>
+              <span className="text-zinc-400 font-medium text-sm">/ month</span>
             </div>
 
-            <ul className="space-y-4 text-sm text-green-50/90 mb-8 border-t border-green-800 pt-6">
+            <ul className="space-y-4 text-sm text-zinc-300 mb-8 border-t border-zinc-800 pt-6">
               <li className="flex items-center gap-3">
-                <div className="bg-[#1f83c6] p-1 rounded-full"><Check size={14} className="text-white font-bold" /></div>
-                <span>Unlimited downloads & revisions</span>
+                <div className="bg-zinc-800 p-1 rounded-full"><Check size={14} className="text-white font-bold" /></div>
+                <span className="font-medium">Unlimited downloads & revisions</span>
               </li>
               <li className="flex items-center gap-3">
-                <div className="bg-[#1f83c6] p-1 rounded-full"><Check size={14} className="text-white font-bold" /></div>
-                <span>Unlimited AI Resume builder & summary suggests</span>
+                <div className="bg-zinc-800 p-1 rounded-full"><Check size={14} className="text-white font-bold" /></div>
+                <span className="font-medium">Unlimited AI Resume builder & suggests</span>
               </li>
               <li className="flex items-center gap-3">
-                <div className="bg-[#1f83c6] p-1 rounded-full"><Check size={14} className="text-white font-bold" /></div>
-                <span>Full ATS Analyzer & scoring breakdowns</span>
+                <div className="bg-zinc-800 p-1 rounded-full"><Check size={14} className="text-white font-bold" /></div>
+                <span className="font-medium">Full ATS Analyzer & scoring breakdowns</span>
               </li>
               <li className="flex items-center gap-3">
-                <div className="bg-[#1f83c6] p-1 rounded-full"><Check size={14} className="text-white font-bold" /></div>
-                <span>Priority AI chatbot answers</span>
+                <div className="bg-zinc-800 p-1 rounded-full"><Check size={14} className="text-white font-bold" /></div>
+                <span className="font-medium">Priority AI chatbot answers</span>
               </li>
             </ul>
           </div>
 
           <button 
             onClick={() => handleOpenCheckout('monthly')}
-            className="w-full bg-[#1f83c6] text-white py-3.5 rounded-xl font-black hover:bg-opacity-90 shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2"
+            className="w-full bg-white text-black py-3.5 rounded-xl font-black hover:bg-zinc-100 shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2"
           >
             <Sparkles size={18} /> Go Pro Unlimited
           </button>
