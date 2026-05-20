@@ -327,12 +327,11 @@ const Payment = () => {
                               alt="Scan to Pay" 
                               className="w-full h-full object-contain"
                             />
-                            <div className="absolute inset-0 flex items-center justify-center bg-white/95 backdrop-blur-[1px] opacity-0 hover:opacity-100 transition-opacity">
+                            <div className="absolute inset-0 flex items-center justify-center bg-white/90 backdrop-blur-[1px] opacity-0 hover:opacity-100 transition-opacity">
                               <span className="text-[10px] font-black text-darkGreen px-2 py-1 bg-green-50 rounded border border-green-200">SCAN TO PAY</span>
                             </div>
                           </div>
-                          <span className="text-xs text-gray-800 font-bold mt-3">UPI ID: 9380268436-a19a@ybl</span>
-                          <span className="text-[10px] text-gray-400 mt-1 font-semibold uppercase tracking-wider">Scan using GPay, PhonePe, or Paytm</span>
+                          <span className="text-[10px] text-gray-400 mt-2 font-semibold uppercase tracking-wider">Scan using GPay, PhonePe, or Paytm</span>
                         </div>
 
                         <div>
