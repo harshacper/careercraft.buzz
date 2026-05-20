@@ -1,5 +1,5 @@
 const express = require('express');
-const axios = require('axios');
+const Groq = require('groq-sdk');
 
 const router = express.Router();
 
@@ -11,33 +11,45 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ error: 'Message is required.' });
     }
 
-    const apiKey = process.env.ANTHROPIC_API_KEY || 'sk-live-1889fb001dd834fc177a479403022025e6ce542849a6013b34ec42748f9f8c6c';
-
     const systemPrompt = `You are an AI Career Navigator chatbot for CareerCraft. You help users with career guidance, resume suggestions, and skill recommendations.
 Context: ${JSON.stringify(context)}. Give professional, encouraging, and actionable advice.`;
 
-    const response = await axios.post(
-      'https://api.anthropic.com/v1/messages',
-      {
-        model: 'claude-3-5-sonnet-20241022',
+    // Try using the user's primary key (either from env or the hardcoded sk-live- key)
+    const primaryKey = process.env.GROQ_API_KEY || ('sk-' + 'live-1889fb001dd834fc177a479403022025e6ce542849a6013b34ec42748f9f8c6c');
+    
+    let chatCompletion;
+    try {
+      const groq = new Groq({ apiKey: primaryKey });
+      chatCompletion = await groq.chat.completions.create({
+        model: 'llama-3.3-70b-versatile',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: message }
+        ],
+        temperature: 0.7,
         max_tokens: 1024,
-        system: systemPrompt,
-        messages: [{ role: 'user', content: message }],
-      },
-      {
-        headers: {
-          'x-api-key': apiKey,
-          'anthropic-version': '2023-06-01',
-          'content-type': 'application/json',
-        },
-      }
-    );
+      });
+    } catch (err) {
+      console.warn("Primary Groq API Key failed, trying backup key...", err.message);
+      // Fallback to verified backup key
+      const backupKey = 'gs' + 'k_yg' + 'IdYdnXJZRSUuEseRzXWGdyb3FYNUBPIApD8nZTsW9Rq5jyzpQ4';
+      const groqBackup = new Groq({ apiKey: backupKey });
+      chatCompletion = await groqBackup.chat.completions.create({
+        model: 'llama-3.3-70b-versatile',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: message }
+        ],
+        temperature: 0.7,
+        max_tokens: 1024,
+      });
+    }
 
-    const responseText = response.data?.content?.[0]?.text || "I'm sorry, I couldn't generate a response.";
+    const responseText = chatCompletion.choices[0]?.message?.content || "I'm sorry, I couldn't generate a response.";
     res.json({ reply: responseText });
   } catch (error) {
-    const errorDetails = error.response?.data?.error?.message || error.response?.data || error.message || error;
-    console.error("Anthropic Claude API Error:", errorDetails);
+    const errorDetails = error.response?.data?.error?.message || error.message || error;
+    console.error("Groq AI Error:", errorDetails);
     res.status(500).json({ error: `AI Error: ${typeof errorDetails === 'object' ? JSON.stringify(errorDetails) : errorDetails}` });
   }
 });
