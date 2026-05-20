@@ -98,29 +98,6 @@ const Dashboard = () => {
             )}
           </div>
         </div>
-
-        {/* Learning Resources Card */}
-        <div className="mt-8 glassmorphism p-8 border-l-8 border-darkGreen">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold flex items-center gap-2"><BookOpen className="text-darkGreen" /> Learning Resources</h2>
-            <button 
-              onClick={() => navigate('/notes')}
-              className="text-darkGreen font-bold flex items-center gap-1 hover:underline"
-            >
-              View All <ChevronRight size={20} />
-            </button>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-4 bg-white/50 rounded-2xl border border-gray-100">
-              <h3 className="font-bold text-gray-900">DSA Mastery</h3>
-              <p className="text-sm text-gray-500">Essential for technical interviews.</p>
-            </div>
-            <div className="p-4 bg-white/50 rounded-2xl border border-gray-100">
-              <h3 className="font-bold text-gray-900">System Design</h3>
-              <p className="text-sm text-gray-500">Design scalable architectures.</p>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );

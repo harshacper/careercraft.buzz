@@ -11,7 +11,6 @@ import Companies from './pages/Companies';
 import ResumeBuilder from './pages/ResumeBuilder';
 import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
-import Notes from './pages/Notes';
 import Payment from './pages/Payment';
 
 function App() {
@@ -28,7 +27,6 @@ function App() {
             <Route path="/chat" element={<Chatbot />} />
             <Route path="/companies" element={<Companies />} />
             <Route path="/resume" element={<ResumeBuilder />} />
-            <Route path="/notes" element={<Notes />} />
             <Route path="/payment" element={<Payment />} />
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
