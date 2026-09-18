@@ -86,6 +86,77 @@ const QUICK_ACTIONS = [
   { label: 'Contact Support', icon: <HelpCircle className="w-3.5 h-3.5" />, query: 'contact support' },
 ];
 
+const createGoogleCalendarUrl = ({ title, description, location, startDate, startTime, durationMinutes = 30 }) => {
+  try {
+    const cleanDate = (startDate || '').replace(/-/g, '');
+    const [hStr, mStr] = (startTime || '09:00').slice(0, 5).split(':');
+    const h = parseInt(hStr || '9', 10);
+    const m = parseInt(mStr || '0', 10);
+    
+    const startFormatted = `${cleanDate}T${String(h).padStart(2, '0')}${String(m).padStart(2, '0')}00`;
+    const endMinutes = h * 60 + m + (durationMinutes || 30);
+    const eh = Math.floor(endMinutes / 60);
+    const em = endMinutes % 60;
+    const endFormatted = `${cleanDate}T${String(eh).padStart(2, '0')}${String(em).padStart(2, '0')}00`;
+    
+    const dates = `${startFormatted}/${endFormatted}`;
+    
+    const params = new URLSearchParams({
+      action: 'TEMPLATE',
+      text: title || 'CareerCraft Consultation Call',
+      dates: dates,
+      ctz: 'Asia/Kolkata',
+      details: description || 'Career consultation call on CareerCraft.buzz',
+      location: location || 'Google Meet / Online - CareerCraft.buzz'
+    });
+    
+    return `https://calendar.google.com/calendar/render?${params.toString()}`;
+  } catch (e) {
+    return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title || 'CareerCraft Consultation')}`;
+  }
+};
+
+const downloadIcsFile = ({ title, description, location, startDate, startTime, durationMinutes = 30 }) => {
+  try {
+    const cleanDate = (startDate || '').replace(/-/g, '');
+    const [hStr, mStr] = (startTime || '09:00').slice(0, 5).split(':');
+    const h = parseInt(hStr || '9', 10);
+    const m = parseInt(mStr || '0', 10);
+    const startFormatted = `${cleanDate}T${String(h).padStart(2, '0')}${String(m).padStart(2, '0')}00`;
+    const endMinutes = h * 60 + m + (durationMinutes || 30);
+    const eh = Math.floor(endMinutes / 60);
+    const em = endMinutes % 60;
+    const endFormatted = `${cleanDate}T${String(eh).padStart(2, '0')}${String(em).padStart(2, '0')}00`;
+
+    const icsContent = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//CareerCraft//Appointment Scheduler//EN',
+      'CALSCALE:GREGORIAN',
+      'METHOD:PUBLISH',
+      'BEGIN:VEVENT',
+      `SUMMARY:${title || 'CareerCraft Consultation'}`,
+      `DESCRIPTION:${(description || 'CareerCraft Consultation session').replace(/\n/g, '\\n')}`,
+      `LOCATION:${location || 'Google Meet / Online - CareerCraft.buzz'}`,
+      `DTSTART;TZID=Asia/Kolkata:${startFormatted}`,
+      `DTEND;TZID=Asia/Kolkata:${endFormatted}`,
+      `STATUS:CONFIRMED`,
+      'END:VEVENT',
+      'END:VCALENDAR'
+    ].join('\r\n');
+
+    const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+    const link = document.createElement('a');
+    link.href = window.URL.createObjectURL(blob);
+    link.setAttribute('download', `CareerCraft-Appointment-${cleanDate}.ics`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  } catch (e) {
+    console.error('ICS export error:', e);
+  }
+};
+
 const CareerCraftAIInner = () => {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
@@ -967,28 +1038,62 @@ const CareerCraftAIInner = () => {
                           </div>
                           <h4 className="text-sm font-black text-gray-900">Appointment Confirmed!</h4>
                           <p className="text-xs text-gray-600">
-                            A confirmation email has been dispatched to <strong>harshasubhash123@gmail.com</strong> and <strong>{bookingState.customerEmail}</strong>.
+                            Your consultation has been scheduled. Add it to your Google Calendar below:
                           </p>
 
-                          <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 text-left text-xs space-y-1 my-2">
-                            <div><strong>Service:</strong> {bookingState.selectedService?.name}</div>
+                          <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 text-left text-xs space-y-1.5 my-2">
+                            <div><strong>Service:</strong> {bookingState.selectedService?.name || 'Career Consultation'}</div>
                             <div><strong>Date:</strong> {bookingState.selectedDate}</div>
                             <div><strong>Time:</strong> {bookingState.selectedSlot?.startDisplay || bookingState.selectedSlot?.startTime} IST</div>
                             <div><strong>Name:</strong> {bookingState.customerName}</div>
                           </div>
 
-                          <div className="flex gap-2 pt-2">
+                          {/* 1-Click Google Calendar & ICS Sync Buttons */}
+                          <div className="space-y-2 pt-1">
+                            <a
+                              href={createGoogleCalendarUrl({
+                                title: `CareerCraft: ${bookingState.selectedService?.name || 'Consultation'} with ${bookingState.customerName}`,
+                                description: `CareerCraft Consultation Call.\nCustomer: ${bookingState.customerName} (${bookingState.customerEmail})\nPhone: ${bookingState.customerPhone || 'N/A'}\nNotes: ${bookingState.notes || 'None'}\nWebsite: https://careercraft.buzz`,
+                                location: 'Google Meet / Online - CareerCraft.buzz',
+                                startDate: bookingState.selectedDate,
+                                startTime: bookingState.selectedSlot?.startTime || '09:00',
+                                durationMinutes: bookingState.selectedService?.durationMinutes || 30
+                              })}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="w-full bg-[#1f83c6] hover:bg-[#196fa8] text-white text-xs font-black py-3 rounded-xl shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
+                            >
+                              <Calendar className="w-4 h-4" /> Add to Google Calendar
+                            </a>
+
+                            <button
+                              type="button"
+                              onClick={() => downloadIcsFile({
+                                title: `CareerCraft: ${bookingState.selectedService?.name || 'Consultation'}`,
+                                description: `CareerCraft Consultation Call with ${bookingState.customerName}\nEmail: ${bookingState.customerEmail}`,
+                                location: 'Google Meet / Online - CareerCraft.buzz',
+                                startDate: bookingState.selectedDate,
+                                startTime: bookingState.selectedSlot?.startTime || '09:00',
+                                durationMinutes: bookingState.selectedService?.durationMinutes || 30
+                              })}
+                              className="w-full bg-white border border-gray-200 text-gray-700 text-xs font-bold py-2 rounded-xl hover:bg-gray-50 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                            >
+                              📥 Download Calendar Invite (.ics)
+                            </button>
+                          </div>
+
+                          <div className="flex gap-2 pt-2 border-t border-gray-100">
                             <button
                               type="button"
                               onClick={() => startBookingFlow()}
-                              className="flex-1 py-2.5 bg-gray-100 text-gray-800 text-xs font-bold rounded-xl hover:bg-gray-200 cursor-pointer"
+                              className="flex-1 py-2 bg-gray-100 text-gray-800 text-xs font-bold rounded-xl hover:bg-gray-200 cursor-pointer"
                             >
                               Book Another
                             </button>
                             <button
                               type="button"
                               onClick={() => setActiveTab('chat')}
-                              className="flex-1 py-2.5 bg-[#20235b] text-white text-xs font-bold rounded-xl hover:bg-[#1a2c6d] cursor-pointer"
+                              className="flex-1 py-2 bg-[#20235b] text-white text-xs font-bold rounded-xl hover:bg-[#1a2c6d] cursor-pointer"
                             >
                               Back to Chat
                             </button>
@@ -1061,19 +1166,37 @@ const CareerCraftAIInner = () => {
                             </div>
 
                             {appt.status !== 'cancelled' && appt.status !== 'completed' && (
-                              <div className="flex gap-2 pt-1">
-                                <button
-                                  onClick={() => openRescheduleModal(appt)}
-                                  className="flex-1 text-[11px] font-bold py-1.5 bg-blue-50 text-[#1f83c6] hover:bg-blue-100 rounded-lg transition-colors cursor-pointer"
+                              <div className="space-y-1.5 pt-1">
+                                <a
+                                  href={createGoogleCalendarUrl({
+                                    title: `CareerCraft: ${appt.service?.name || 'Career Consultation'}`,
+                                    description: `CareerCraft Consultation Call.\nService: ${appt.service?.name || 'Consultation'}\nWebsite: https://careercraft.buzz`,
+                                    location: 'Google Meet / Online - CareerCraft.buzz',
+                                    startDate: appt.appointmentDate,
+                                    startTime: appt.startTime,
+                                    durationMinutes: appt.service?.durationMinutes || 30
+                                  })}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="w-full text-center text-[10px] font-bold py-1.5 bg-[#1f83c6]/10 text-[#1f83c6] hover:bg-[#1f83c6]/20 rounded-lg transition-colors flex items-center justify-center gap-1 cursor-pointer"
                                 >
-                                  Reschedule
-                                </button>
-                                <button
-                                  onClick={() => handleCancelAppointment(appt.id)}
-                                  className="flex-1 text-[11px] font-bold py-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition-colors cursor-pointer"
-                                >
-                                  Cancel
-                                </button>
+                                  <Calendar className="w-3 h-3" /> Add to Google Calendar
+                                </a>
+
+                                <div className="flex gap-2">
+                                  <button
+                                    onClick={() => openRescheduleModal(appt)}
+                                    className="flex-1 text-[11px] font-bold py-1.5 bg-blue-50 text-[#1f83c6] hover:bg-blue-100 rounded-lg transition-colors cursor-pointer"
+                                  >
+                                    Reschedule
+                                  </button>
+                                  <button
+                                    onClick={() => handleCancelAppointment(appt.id)}
+                                    className="flex-1 text-[11px] font-bold py-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition-colors cursor-pointer"
+                                  >
+                                    Cancel
+                                  </button>
+                                </div>
                               </div>
                             )}
                           </div>
@@ -1191,12 +1314,29 @@ const CareerCraftAIInner = () => {
 
                               {/* Booking reference card */}
                               {msg.appointmentCard && (
-                                <div className="mt-3 bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-[11px] text-emerald-950 space-y-1">
+                                <div className="mt-3 bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-[11px] text-emerald-950 space-y-2">
                                   <div className="font-bold text-emerald-900 flex items-center gap-1">
                                     <CheckCircle className="w-3.5 h-3.5 text-emerald-600" /> Booking Reference #{msg.appointmentCard.id ? msg.appointmentCard.id.slice(0, 8) : 'CONFIRMED'}
                                   </div>
-                                  <div>Service: {msg.appointmentCard.service?.name || 'Career Consultation'}</div>
-                                  <div>Date: {msg.appointmentCard.appointmentDate} at {msg.appointmentCard.startTime}</div>
+                                  <div className="space-y-0.5">
+                                    <div><strong>Service:</strong> {msg.appointmentCard.service?.name || 'Career Consultation'}</div>
+                                    <div><strong>Date & Time:</strong> {msg.appointmentCard.appointmentDate} at {msg.appointmentCard.startTime} IST</div>
+                                  </div>
+                                  <a
+                                    href={createGoogleCalendarUrl({
+                                      title: `CareerCraft: ${msg.appointmentCard.service?.name || 'Consultation'}`,
+                                      description: `CareerCraft Consultation Call.\nService: ${msg.appointmentCard.service?.name || 'Consultation'}\nWebsite: https://careercraft.buzz`,
+                                      location: 'Google Meet / Online - CareerCraft.buzz',
+                                      startDate: msg.appointmentCard.appointmentDate,
+                                      startTime: msg.appointmentCard.startTime,
+                                      durationMinutes: msg.appointmentCard.service?.durationMinutes || 30
+                                    })}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#1f83c6] text-white font-bold rounded-lg text-[10px] hover:bg-[#196fa8] transition-colors shadow-sm cursor-pointer"
+                                  >
+                                    <Calendar className="w-3 h-3" /> Add to Google Calendar
+                                  </a>
                                 </div>
                               )}
                             </div>
