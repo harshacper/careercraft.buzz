@@ -69,30 +69,46 @@ const Home = () => {
               { 
                 title: 'AI Resume Intelligence', 
                 desc: 'Generate ATS-optimized resumes using achievement-based AI prompts tailored for high-paying roles.',
-                icon: <Target className="w-8 h-8" />
+                icon: <Target className="w-8 h-8" />,
+                link: '/resume'
               },
               { 
                 title: '360° Skill Gap Roadmap', 
                 desc: 'Detect missing skills for your dream job and get a personalized course roadmap to bridge the gap.',
-                icon: <Zap className="w-8 h-8" />
+                icon: <Zap className="w-8 h-8" />,
+                link: '/resume'
               },
               { 
-                title: 'Admin User Tracking', 
-                desc: 'Secure SQL-backed system for managing your career progress and tracking improvements over time.',
-                icon: <CheckCircle2 className="w-8 h-8" />
+                title: '1-on-1 Live Consultation', 
+                desc: 'Book live mentorship sessions with career experts for resume audits, interview simulations, and career guidance.',
+                icon: <Sparkles className="w-8 h-8" />,
+                link: '/book-appointment',
+                highlight: true
               }
             ].map((feat, idx) => (
-              <motion.div 
-                whileHover={{ y: -10 }}
-                key={idx} 
-                className="p-6 sm:p-10 rounded-3xl sm:rounded-[40px] bg-white border border-gray-100 shadow-xl hover:shadow-2xl transition-all"
-              >
-                <div className="w-16 h-16 bg-black text-white rounded-3xl flex items-center justify-center mb-8 shadow-lg shadow-black/20">
-                  {feat.icon}
-                </div>
-                <h3 className="text-xl sm:text-2xl font-black mb-4 text-black">{feat.title}</h3>
-                <p className="text-black/70 leading-relaxed font-medium">{feat.desc}</p>
-              </motion.div>
+              <Link to={feat.link} key={idx}>
+                <motion.div 
+                  whileHover={{ y: -10 }}
+                  className={`p-6 sm:p-10 rounded-3xl sm:rounded-[40px] border shadow-xl hover:shadow-2xl transition-all h-full flex flex-col justify-between ${
+                    feat.highlight 
+                      ? 'bg-gradient-to-br from-white to-blue-50/80 border-[#1f83c6]/40 shadow-blue-100/50' 
+                      : 'bg-white border-gray-100'
+                  }`}
+                >
+                  <div>
+                    <div className={`w-16 h-16 rounded-3xl flex items-center justify-center mb-8 shadow-lg ${
+                      feat.highlight ? 'bg-gradient-to-r from-[#20235b] to-[#1f83c6] text-white shadow-blue-500/20' : 'bg-black text-white shadow-black/20'
+                    }`}>
+                      {feat.icon}
+                    </div>
+                    <h3 className="text-xl sm:text-2xl font-black mb-4 text-black">{feat.title}</h3>
+                    <p className="text-black/70 leading-relaxed font-medium">{feat.desc}</p>
+                  </div>
+                  <div className="mt-6 flex items-center gap-2 text-sm font-black text-[#1f83c6]">
+                    <span>Explore feature</span> <ArrowRight className="w-4 h-4" />
+                  </div>
+                </motion.div>
+              </Link>
             ))}
           </div>
         </div>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Briefcase, MessageSquare, Building2, BarChart, FileText, UserCircle, BookOpen, CreditCard, Menu, X } from 'lucide-react';
+import { Briefcase, MessageSquare, Building2, BarChart, FileText, UserCircle, BookOpen, CreditCard, Menu, X, Calendar } from 'lucide-react';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -31,10 +31,11 @@ const Navbar = () => {
       </Link>
       
       {/* Desktop Links */}
-      <div className="hidden md:flex space-x-6 text-black font-medium">
+      <div className="hidden lg:flex space-x-6 text-black font-medium items-center">
         <Link to="/companies" className="hover:text-[#1f83c6] flex items-center gap-1 transition-colors"><Building2 className="w-4 h-4"/> Companies</Link>
         <Link to="/resume" className="hover:text-[#1f83c6] flex items-center gap-1 transition-colors"><FileText className="w-4 h-4"/> Resume</Link>
         <Link to="/chat" className="hover:text-[#1f83c6] flex items-center gap-1 transition-colors"><MessageSquare className="w-4 h-4"/> AI Chat</Link>
+        <Link to="/book-appointment" className="text-[#1f83c6] font-bold hover:text-[#20235b] flex items-center gap-1 transition-colors bg-blue-50/80 px-3 py-1.5 rounded-full border border-blue-200"><Calendar className="w-4 h-4 text-[#1f83c6]"/> Book Appointment</Link>
         <Link to="/payment" className="hover:text-[#1f83c6] flex items-center gap-1 transition-colors"><CreditCard className="w-4 h-4"/> Pricing</Link>
       </div>
 
@@ -46,7 +47,10 @@ const Navbar = () => {
       </div>
 
       {/* Mobile actions and hamburger toggler */}
-      <div className="md:hidden flex items-center gap-4">
+      <div className="lg:hidden flex items-center gap-3">
+        <Link to="/book-appointment" className="text-xs font-bold text-[#1f83c6] bg-blue-50 px-2.5 py-1.5 rounded-full border border-blue-200 flex items-center gap-1">
+          <Calendar className="w-3.5 h-3.5" /> Book
+        </Link>
         <Link to="/dashboard" className="text-black hover:text-[#1f83c6]"><UserCircle className="w-7 h-7"/></Link>
         <button onClick={() => setIsOpen(!isOpen)} className="text-black focus:outline-none p-1" aria-label="Toggle Navigation Menu">
           {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -55,7 +59,8 @@ const Navbar = () => {
 
       {/* Mobile Dropdown Panel */}
       {isOpen && (
-        <div className="md:hidden absolute top-full left-0 right-0 mt-2 mx-0 p-6 glassmorphism flex flex-col space-y-4 z-50 shadow-2xl animate-in fade-in slide-in-from-top-5 duration-200">
+        <div className="lg:hidden absolute top-full left-0 right-0 mt-2 mx-0 p-6 glassmorphism flex flex-col space-y-4 z-50 shadow-2xl animate-in fade-in slide-in-from-top-5 duration-200">
+          <Link to="/book-appointment" onClick={() => setIsOpen(false)} className="text-[#1f83c6] flex items-center gap-2 py-2.5 font-bold border-b border-black/5 bg-blue-50/60 px-3 rounded-xl"><Calendar className="w-5 h-5 text-[#1f83c6]"/> Book Appointment</Link>
           <Link to="/companies" onClick={() => setIsOpen(false)} className="hover:text-[#1f83c6] flex items-center gap-2 py-2.5 font-bold border-b border-black/5"><Building2 className="w-5 h-5 text-gray-500"/> Companies</Link>
           <Link to="/resume" onClick={() => setIsOpen(false)} className="hover:text-[#1f83c6] flex items-center gap-2 py-2.5 font-bold border-b border-black/5"><FileText className="w-5 h-5 text-gray-500"/> Resume</Link>
           <Link to="/chat" onClick={() => setIsOpen(false)} className="hover:text-[#1f83c6] flex items-center gap-2 py-2.5 font-bold border-b border-black/5"><MessageSquare className="w-5 h-5 text-gray-500"/> AI Chat</Link>
