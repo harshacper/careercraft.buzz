@@ -12,7 +12,6 @@ import ResumeBuilder from './pages/ResumeBuilder';
 import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
 import Payment from './pages/Payment';
-import BookAppointment from './pages/BookAppointment';
 import CareerCraftAI from './components/CareerCraftAI';
 
 function App() {
@@ -30,10 +29,6 @@ function App() {
             <Route path="/companies" element={<Companies />} />
             <Route path="/resume" element={<ResumeBuilder />} />
             <Route path="/payment" element={<Payment />} />
-            <Route path="/book-appointment" element={<BookAppointment />} />
-            <Route path="/appointment" element={<BookAppointment />} />
-            <Route path="/appointments" element={<BookAppointment />} />
-            <Route path="/booking" element={<BookAppointment />} />
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
             <Route path="*" element={<Home />} />
