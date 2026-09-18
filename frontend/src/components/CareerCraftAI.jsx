@@ -361,7 +361,7 @@ const CareerCraftAI = () => {
     setMessages(prev => [...prev, userMsg]);
     setLoading(true);
 
-    const lower = msgText.toLowerCase();
+    const lower = msgText.toLowerCase().trim();
 
     // Direct check for appointment intent
     if (lower.includes('book appointment') || lower.includes('want to book an appointment') || lower === 'book appointment') {
@@ -376,28 +376,90 @@ const CareerCraftAI = () => {
       return;
     }
 
-    try {
-      const res = await api.post('/ai/chat', {
-        message: msgText,
-        sessionId: safeStorage.getItem('ai_session_id') || `session_${Date.now()}`,
-        conversationHistory: messages.map(m => ({ role: m.role, content: m.content })),
-        user: currentUser
-      });
+    // Direct instant knowledge matcher for quick actions
+    const CLIENT_KNOWLEDGE = {
+      'ats score': {
+        reply: "**ATS Resume Analyzer** 🎯\n\nApplicant Tracking Systems filter out up to 75% of resumes before a human recruiter sees them. With CareerCraft:\n\n1. Visit the **[ATS Analyzer](/resume)**.\n2. Upload your existing resume (.pdf or .docx).\n3. Receive your overall score, missing keywords, and actionable tips to boost your interview callbacks!\n\nWould you like help preparing your resume?",
+        suggestedActions: ['Open ATS Analyzer', 'Resume Builder', 'Book Appointment']
+      },
+      'resume builder': {
+        reply: "**AI Resume Intelligence & Builder** 📄\n\nOur builder allows you to craft high-impact, ATS-friendly resumes in minutes:\n\n1. Go to the **[Resume Builder](/resume)**.\n2. Choose **AI Builder**.\n3. Enter your target role, experience, and skills.\n4. Optionally enter a target company (e.g. Google, Amazon) or paste a Job Description to auto-tailor your resume.\n5. Click **Download PDF** to export your formatted resume!\n\nWould you like to start building or book a resume review session?",
+        suggestedActions: ['Open Resume Builder', 'Book Appointment', 'ATS Score']
+      },
+      'explore careercraft': {
+        reply: "**Welcome to CareerCraft!** 🚀\n\nCareerCraft is your all-in-one AI career development platform. Here is what you can do:\n\n- 📄 **[AI Resume Builder](/resume)**: Build ATS-optimized resumes tailored for high-paying roles.\n- 🎯 **[ATS Score Analyzer](/resume)**: Scan your resume and get immediate keyword optimization.\n- ⚡ **[360° Skill Gap Roadmap](/resume)**: Compare your skills with target job descriptions.\n- 🏢 **[Top 100+ Companies](/companies)**: Explore verified career portals from Big Tech to top startups.\n- 📅 **Book a 1-on-1 Consultation**: Get personalized mentorship from career advisors.\n\nWhat would you like to explore today?",
+        suggestedActions: ['Resume Builder', 'ATS Score', 'Skill Gap Analysis', 'Job Search', 'Book Appointment']
+      },
+      'skill gap analysis': {
+        reply: "**360° Skill Gap Roadmap** ⚡\n\nOur AI compares your resume directly against the job description for your dream role:\n\n- Identifies missing technical and soft skills\n- Calculates match percentages for Service-based, Product-based, and Startup companies\n- Delivers a personalized week-by-week learning roadmap with book and course recommendations!\n\nCheck it out now in the **[Resume Hub](/resume)**.",
+        suggestedActions: ['Open Resume Hub', 'Job Search', 'Book Appointment']
+      },
+      'job search': {
+        reply: "**Top 100+ Companies Directory** 🏢\n\nExplore curated career opportunities across:\n\n- **Big Tech**: Google, Microsoft, Apple, Amazon, Meta, Netflix, Tesla, NVIDIA\n- **IT & Software**: TCS, Infosys, Wipro, Oracle, IBM, Accenture\n- **Top Startups**: Flipkart, Cred, Razorpay, Swiggy, Zomato\n\n👉 Browse all opportunities on the **[Companies Page](/companies)**! You can even generate a resume pre-customized for any company with a single click.",
+        suggestedActions: ['Explore Companies', 'Resume Builder', 'Book Appointment']
+      },
+      'contact support': {
+        reply: "**CareerCraft Support & Contact** 💬\n\nWe are here to help you succeed!\n\n- 📧 **Email**: `support@careercraft.buzz`\n- 📞 **Phone**: `+91 93802 68436`\n- 🕒 **Hours**: Monday to Saturday, 9:00 AM - 6:00 PM IST\n- 📍 **Location**: Bangalore, Karnataka, India\n\nYou can also book a live 1-on-1 consultation session with our advisors right here in the chat!",
+        suggestedActions: ['Book Appointment', 'Explore CareerCraft', 'Pricing']
+      }
+    };
 
-      const reply = res.data.reply;
+    if (CLIENT_KNOWLEDGE[lower]) {
+      const match = CLIENT_KNOWLEDGE[lower];
+      setMessages(prev => [
+        ...prev,
+        {
+          id: `ai-${Date.now()}`,
+          role: 'assistant',
+          content: match.reply,
+          suggestedActions: match.suggestedActions,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        }
+      ]);
+      setLoading(false);
+      return;
+    }
+
+    try {
+      let reply = '';
+      let suggestedActions = null;
+      let isBookingPrompt = false;
+
+      try {
+        const res = await api.post('/ai/chat', {
+          message: msgText,
+          sessionId: safeStorage.getItem('ai_session_id') || `session_${Date.now()}`,
+          conversationHistory: messages.map(m => ({ role: m.role, content: m.content })),
+          user: currentUser
+        });
+        reply = res.data.reply;
+        suggestedActions = res.data.suggestedActions;
+        isBookingPrompt = res.data.isBookingPrompt;
+      } catch (aiErr) {
+        // Fallback to /chat route
+        const fallbackRes = await api.post('/chat', {
+          message: msgText,
+          context: 'CareerCraft career advisor'
+        });
+        reply = fallbackRes.data.reply;
+      }
+
+      if (!reply) {
+        reply = "**CareerCraft** helps you build ATS-friendly resumes, analyze skill gaps, and explore 100+ top company hiring portals. You can also book 1-on-1 career consultation appointments right here in the chat!";
+      }
+
       const botMsg = {
         id: `ai-${Date.now()}`,
         role: 'assistant',
         content: reply,
-        suggestedActions: res.data.suggestedActions,
-        isBookingPrompt: res.data.isBookingPrompt,
+        suggestedActions,
+        isBookingPrompt,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
 
       setMessages(prev => [...prev, botMsg]);
 
-      // If response asks to book, auto load services
-      if (res.data.isBookingPrompt) {
+      if (isBookingPrompt) {
         fetchServices();
       }
     } catch (err) {
@@ -405,9 +467,10 @@ const CareerCraftAI = () => {
       setMessages(prev => [
         ...prev,
         {
-          id: `err-${Date.now()}`,
+          id: `ai-fallback-${Date.now()}`,
           role: 'assistant',
-          content: "I'm having a brief issue connecting to my brain. For immediate help or bookings, please email support@careercraft.buzz or call +91 93802 68436.",
+          content: "**CareerCraft** is an AI-powered career platform designed to help you scale your future with ATS resume building, skill gap roadmaps, and 1-on-1 consultation appointments.\n\nHow can I help you today?",
+          suggestedActions: ['Resume Builder', 'ATS Score', 'Book Appointment', 'Contact Support'],
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         }
       ]);
