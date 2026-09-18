@@ -9,19 +9,24 @@ const chatRoutes = require('./routes/chat');
 const adminRoutes = require('./routes/admin');
 const skillGapRoutes = require('./routes/skillGap');
 const paymentRoutes = require('./routes/payment');
+const aiRoutes = require('./routes/aiChat');
+const appointmentRoutes = require('./routes/appointments');
+const { initAppointmentDb } = require('./models/appointmentModels');
 
 const app = express();
 app.use(express.json({ limit: '10mb' })); // Increased limit for base64 resumes
 app.use(cors());
 
-// SQLite Database Connection disabled - using Supabase
-// connectDB();
+// Initialize Appointment and Customer Database Models
+initAppointmentDb();
 
 app.use('/api/auth', authRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/skill-gap', skillGapRoutes);
 app.use('/api/payment', paymentRoutes);
+app.use('/api/ai', aiRoutes);
+app.use('/api/appointments', appointmentRoutes);
 
 app.get('/', (req, res) => {
   res.send('AI Career Navigator API (SQL Version) is running...');

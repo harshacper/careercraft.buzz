@@ -1,0 +1,1038 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  Bot, X, Send, Sparkles, Calendar, Clock, User, Mail, Phone, CheckCircle, 
+  ChevronRight, RefreshCw, AlertCircle, ExternalLink, Minimize2, Maximize2,
+  CalendarCheck, ArrowRight, ShieldCheck, HelpCircle, Loader2, FileText,
+  Target, Zap, Building2, CreditCard, ChevronDown
+} from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import api from '../utils/api';
+import safeStorage from '../utils/safeStorage';
+
+const QUICK_ACTIONS = [
+  { label: 'Explore CareerCraft', icon: <Sparkles className="w-3.5 h-3.5" />, query: 'Explore CareerCraft' },
+  { label: 'Resume Builder', icon: <FileText className="w-3.5 h-3.5" />, query: 'Resume Builder' },
+  { label: 'ATS Score', icon: <Target className="w-3.5 h-3.5" />, query: 'ATS Score' },
+  { label: 'Skill Gap Analysis', icon: <Zap className="w-3.5 h-3.5" />, query: 'Skill Gap Analysis' },
+  { label: 'Job Search', icon: <Building2 className="w-3.5 h-3.5" />, query: 'Job Search' },
+  { label: 'Book Appointment', icon: <Calendar className="w-3.5 h-3.5 text-blue-600" />, query: 'book appointment', isSpecial: true },
+  { label: 'Contact Support', icon: <HelpCircle className="w-3.5 h-3.5" />, query: 'Contact Support' },
+];
+
+const CareerCraftAI = () => {
+  const navigate = useNavigate();
+  const [isOpen, setIsOpen] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(false);
+  const [input, setInput] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+
+  // Chat conversation state
+  const [messages, setMessages] = useState([
+    {
+      id: 'welcome-1',
+      role: 'assistant',
+      content: "Hi 👋 I'm CareerCraft AI.\nI can help you understand CareerCraft, answer your questions, and book an appointment.",
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      showQuickActions: true
+    }
+  ]);
+
+  // Appointment Interactive Wizard State inside Chat
+  const [bookingState, setBookingState] = useState({
+    active: false,
+    step: 1, // 1: Service, 2: Date & Slot, 3: Details, 4: Confirmed
+    services: [],
+    selectedService: null,
+    selectedDate: '',
+    availableSlots: [],
+    loadingSlots: false,
+    selectedSlot: null,
+    customerName: '',
+    customerEmail: '',
+    customerPhone: '',
+    notes: '',
+    confirmedBooking: null,
+    error: null,
+    submitting: false
+  });
+
+  // My Appointments Modal/View in Widget
+  const [viewingMyAppointments, setViewingMyAppointments] = useState(false);
+  const [myAppointments, setMyAppointments] = useState([]);
+  const [loadingMyAppointments, setLoadingMyAppointments] = useState(false);
+
+  // Reschedule Modal inside widget
+  const [rescheduleData, setRescheduleData] = useState({
+    appointmentId: null,
+    serviceId: null,
+    date: '',
+    slot: null,
+    slots: [],
+    loading: false,
+    saving: false
+  });
+
+  const messagesEndRef = useRef(null);
+
+  // Auto-scroll chat
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    if (isOpen) {
+      scrollToBottom();
+    }
+  }, [messages, bookingState, isOpen, viewingMyAppointments]);
+
+  // Check logged in user info
+  useEffect(() => {
+    const userStr = safeStorage.getItem('user');
+    if (userStr) {
+      try {
+        const u = JSON.parse(userStr);
+        setCurrentUser(u);
+        setBookingState(prev => ({
+          ...prev,
+          customerName: u.fullName || u.name || '',
+          customerEmail: u.email || '',
+          customerPhone: u.phoneNumber || ''
+        }));
+      } catch (e) {}
+    }
+  }, [isOpen]);
+
+  // Fetch consultation services
+  const fetchServices = async () => {
+    try {
+      const res = await api.get('/appointments/services');
+      setBookingState(prev => ({
+        ...prev,
+        services: res.data,
+        selectedService: prev.selectedService || res.data[0]
+      }));
+    } catch (err) {
+      console.error('Failed to load services:', err);
+    }
+  };
+
+  // Start booking wizard
+  const startBookingFlow = (preselectedServiceName = null) => {
+    fetchServices();
+    
+    // Set default tomorrow date (YYYY-MM-DD)
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    // If tomorrow is Sunday, advance to Monday
+    if (tomorrow.getDay() === 0) {
+      tomorrow.setDate(tomorrow.getDate() + 1);
+    }
+    const defaultDateStr = tomorrow.toISOString().split('T')[0];
+
+    setBookingState(prev => ({
+      ...prev,
+      active: true,
+      step: 1,
+      selectedDate: defaultDateStr,
+      selectedSlot: null,
+      error: null,
+      confirmedBooking: null
+    }));
+
+    setMessages(prev => [
+      ...prev,
+      {
+        id: `msg-${Date.now()}`,
+        role: 'assistant',
+        content: "I'd be happy to help you book a 1-on-1 CareerCraft consultation! Please select the service and preferred time below:",
+        isBookingWidget: true,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      }
+    ]);
+  };
+
+  // Fetch slots for selected date & service
+  const fetchSlots = async (serviceId, dateStr) => {
+    if (!dateStr) return;
+    setBookingState(prev => ({ ...prev, loadingSlots: true, error: null, availableSlots: [] }));
+
+    try {
+      const res = await api.get(`/appointments/availability?serviceId=${serviceId || ''}&date=${dateStr}`);
+      setBookingState(prev => ({
+        ...prev,
+        availableSlots: res.data.slots || [],
+        loadingSlots: false,
+        error: !res.data.isWorkingDay ? (res.data.reason || 'Not a working day') : (res.data.slots.length === 0 ? 'No slots remaining for this date. Please pick another date.' : null)
+      }));
+    } catch (err) {
+      setBookingState(prev => ({
+        ...prev,
+        loadingSlots: false,
+        availableSlots: [],
+        error: err.response?.data?.error || 'Failed to check available slots.'
+      }));
+    }
+  };
+
+  // Handle slot selection and advance
+  const handleSelectService = (service) => {
+    setBookingState(prev => ({ ...prev, selectedService: service, step: 2 }));
+    fetchSlots(service.id, bookingState.selectedDate);
+  };
+
+  const handleDateChange = (newDate) => {
+    setBookingState(prev => ({ ...prev, selectedDate: newDate, selectedSlot: null }));
+    if (bookingState.selectedService) {
+      fetchSlots(bookingState.selectedService.id, newDate);
+    }
+  };
+
+  const handleSelectSlot = (slot) => {
+    setBookingState(prev => ({ ...prev, selectedSlot: slot, step: 3 }));
+  };
+
+  // Confirm booking
+  const handleConfirmBooking = async (e) => {
+    e?.preventDefault();
+    if (!bookingState.customerName || !bookingState.customerEmail) {
+      setBookingState(prev => ({ ...prev, error: 'Please enter your Name and Email.' }));
+      return;
+    }
+    if (!bookingState.selectedSlot) {
+      setBookingState(prev => ({ ...prev, error: 'Please select an appointment time slot.' }));
+      return;
+    }
+
+    setBookingState(prev => ({ ...prev, submitting: true, error: null }));
+
+    try {
+      const res = await api.post('/appointments', {
+        customerName: bookingState.customerName,
+        customerEmail: bookingState.customerEmail,
+        customerPhone: bookingState.customerPhone || 'N/A',
+        serviceId: bookingState.selectedService?.id,
+        appointmentDate: bookingState.selectedDate,
+        startTime: bookingState.selectedSlot.startTime,
+        notes: bookingState.notes || 'Booked via CareerCraft AI'
+      });
+
+      const appointment = res.data.appointment;
+      setBookingState(prev => ({
+        ...prev,
+        submitting: false,
+        step: 4,
+        confirmedBooking: appointment
+      }));
+
+      // Add confirmation message to chat
+      setMessages(prev => [
+        ...prev,
+        {
+          id: `confirm-${Date.now()}`,
+          role: 'assistant',
+          content: `✅ **Appointment Confirmed!**\n\n**Service:** ${appointment.service?.name || bookingState.selectedService?.name}\n**Date:** ${appointment.appointmentDate}\n**Time:** ${appointment.startTime} - ${appointment.endTime}\n**Name:** ${appointment.customer?.name || bookingState.customerName}\n**Status:** Confirmed\n\nA confirmation has been generated for your contact details.`,
+          appointmentCard: appointment,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        }
+      ]);
+    } catch (err) {
+      setBookingState(prev => ({
+        ...prev,
+        submitting: false,
+        error: err.response?.data?.error || 'Failed to confirm appointment. That slot might have just been taken.'
+      }));
+    }
+  };
+
+  // Fetch logged in user's appointments
+  const fetchMyAppointments = async () => {
+    const email = currentUser?.email || bookingState.customerEmail;
+    if (!email) {
+      setViewingMyAppointments(true);
+      return;
+    }
+    setLoadingMyAppointments(true);
+    setViewingMyAppointments(true);
+    try {
+      const res = await api.get(`/appointments/my?email=${encodeURIComponent(email)}`);
+      setMyAppointments(res.data || []);
+    } catch (err) {
+      console.error('Failed to load my appointments:', err);
+    } finally {
+      setLoadingMyAppointments(false);
+    }
+  };
+
+  // Reschedule an appointment
+  const openRescheduleModal = async (appt) => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const dateStr = tomorrow.toISOString().split('T')[0];
+
+    setRescheduleData({
+      appointmentId: appt.id,
+      serviceId: appt.serviceId || appt.service?.id,
+      date: dateStr,
+      slot: null,
+      slots: [],
+      loading: true,
+      saving: false
+    });
+
+    try {
+      const res = await api.get(`/appointments/availability?serviceId=${appt.serviceId || ''}&date=${dateStr}`);
+      setRescheduleData(prev => ({
+        ...prev,
+        slots: res.data.slots || [],
+        loading: false
+      }));
+    } catch (e) {
+      setRescheduleData(prev => ({ ...prev, loading: false }));
+    }
+  };
+
+  const handleRescheduleDateChange = async (newDate) => {
+    setRescheduleData(prev => ({ ...prev, date: newDate, slot: null, loading: true }));
+    try {
+      const res = await api.get(`/appointments/availability?serviceId=${rescheduleData.serviceId || ''}&date=${newDate}`);
+      setRescheduleData(prev => ({
+        ...prev,
+        slots: res.data.slots || [],
+        loading: false
+      }));
+    } catch (e) {
+      setRescheduleData(prev => ({ ...prev, loading: false }));
+    }
+  };
+
+  const submitReschedule = async () => {
+    if (!rescheduleData.slot || !rescheduleData.date) {
+      alert('Please select a new date and time slot.');
+      return;
+    }
+    setRescheduleData(prev => ({ ...prev, saving: true }));
+    try {
+      await api.patch(`/appointments/${rescheduleData.appointmentId}`, {
+        date: rescheduleData.date,
+        startTime: rescheduleData.slot.startTime,
+        reason: 'Rescheduled via CareerCraft AI'
+      });
+
+      alert('Appointment rescheduled successfully!');
+      setRescheduleData({ appointmentId: null, serviceId: null, date: '', slot: null, slots: [], loading: false, saving: false });
+      fetchMyAppointments();
+    } catch (err) {
+      alert(err.response?.data?.error || 'Failed to reschedule.');
+      setRescheduleData(prev => ({ ...prev, saving: false }));
+    }
+  };
+
+  // Cancel an appointment
+  const handleCancelAppointment = async (apptId) => {
+    const confirmCancel = window.confirm('Are you sure you want to cancel this appointment?');
+    if (!confirmCancel) return;
+
+    try {
+      await api.delete(`/appointments/${apptId}`, {
+        data: { reason: 'Cancelled by customer via CareerCraft AI' }
+      });
+      alert('Appointment cancelled successfully.');
+      fetchMyAppointments();
+    } catch (err) {
+      alert(err.response?.data?.error || 'Failed to cancel appointment.');
+    }
+  };
+
+  // Main chat submit
+  const handleSend = async (textToSend) => {
+    const msgText = (textToSend || input).trim();
+    if (!msgText || loading) return;
+
+    setInput('');
+    const userMsg = {
+      id: `user-${Date.now()}`,
+      role: 'user',
+      content: msgText,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    };
+
+    setMessages(prev => [...prev, userMsg]);
+    setLoading(true);
+
+    const lower = msgText.toLowerCase();
+
+    // Direct check for appointment intent
+    if (lower.includes('book appointment') || lower.includes('want to book an appointment') || lower === 'book appointment') {
+      startBookingFlow();
+      setLoading(false);
+      return;
+    }
+
+    if (lower.includes('my appointment') || lower.includes('my bookings')) {
+      fetchMyAppointments();
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const res = await api.post('/ai/chat', {
+        message: msgText,
+        sessionId: safeStorage.getItem('ai_session_id') || `session_${Date.now()}`,
+        conversationHistory: messages.map(m => ({ role: m.role, content: m.content })),
+        user: currentUser
+      });
+
+      const reply = res.data.reply;
+      const botMsg = {
+        id: `ai-${Date.now()}`,
+        role: 'assistant',
+        content: reply,
+        suggestedActions: res.data.suggestedActions,
+        isBookingPrompt: res.data.isBookingPrompt,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+
+      setMessages(prev => [...prev, botMsg]);
+
+      // If response asks to book, auto load services
+      if (res.data.isBookingPrompt) {
+        fetchServices();
+      }
+    } catch (err) {
+      console.error(err);
+      setMessages(prev => [
+        ...prev,
+        {
+          id: `err-${Date.now()}`,
+          role: 'assistant',
+          content: "I'm having a brief issue connecting to my brain. For immediate help or bookings, please email support@careercraft.buzz or call +91 93802 68436.",
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        }
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Link handler for internal markdown links
+  const handleLinkClick = (path) => {
+    if (path.startsWith('/')) {
+      navigate(path);
+      if (window.innerWidth < 768) {
+        setIsOpen(false);
+      }
+    }
+  };
+
+  return (
+    <>
+      {/* Floating Trigger Button (Bottom-Right) */}
+      <div className="fixed bottom-5 right-5 z-50">
+        <AnimatePresence>
+          {!isOpen && (
+            <motion.button
+              initial={{ scale: 0, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0, opacity: 0, y: 20 }}
+              whileHover={{ scale: 1.08 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => { setIsOpen(true); setIsMinimized(false); }}
+              className="group relative flex items-center gap-3 bg-gradient-to-r from-[#20235b] to-[#1f83c6] text-white px-5 py-3.5 rounded-full shadow-2xl hover:shadow-[#1f83c6]/30 border border-white/20 transition-all duration-300 cursor-pointer"
+              aria-label="Open CareerCraft AI Assistant"
+            >
+              <div className="relative">
+                <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+                  <Bot className="w-5 h-5 text-white animate-pulse" />
+                </div>
+                <span className="absolute -top-0.5 -right-0.5 w-3 h-3 bg-emerald-400 border-2 border-[#20235b] rounded-full"></span>
+              </div>
+              <div className="flex flex-col text-left">
+                <span className="text-xs font-bold tracking-tight text-white/90 leading-none">AI Assistant</span>
+                <span className="text-sm font-black tracking-wide text-white leading-tight">CareerCraft AI</span>
+              </div>
+            </motion.button>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* Main Floating Chat Dialog */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: 40, scale: 0.94 }}
+            animate={{ 
+              opacity: 1, 
+              y: 0, 
+              scale: 1,
+              height: isMinimized ? '64px' : 'auto'
+            }}
+            exit={{ opacity: 0, y: 40, scale: 0.94 }}
+            transition={{ duration: 0.25, ease: 'easeOut' }}
+            className={`fixed bottom-5 right-5 z-50 w-[94vw] sm:w-[420px] md:w-[450px] bg-white rounded-3xl shadow-2xl border border-gray-200/80 flex flex-col overflow-hidden ${
+              isMinimized ? 'h-16' : 'h-[620px] max-h-[85vh]'
+            }`}
+          >
+            {/* Header */}
+            <div className="bg-gradient-to-r from-[#20235b] via-[#1a2c6d] to-[#1f83c6] text-white px-5 py-3.5 flex items-center justify-between shrink-0 shadow-md">
+              <div className="flex items-center gap-3">
+                <div className="relative">
+                  <div className="w-9 h-9 rounded-2xl bg-white/15 backdrop-blur-md flex items-center justify-center border border-white/20 shadow-inner">
+                    <Bot className="w-5 h-5 text-white" />
+                  </div>
+                  <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-400 border-2 border-[#20235b] rounded-full"></span>
+                </div>
+                <div>
+                  <h3 className="text-sm font-black text-white tracking-tight flex items-center gap-1.5">
+                    CareerCraft AI
+                  </h3>
+                  <p className="text-[11px] text-emerald-300 font-semibold flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+                    Online • Ready to help
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => setIsMinimized(!isMinimized)}
+                  className="text-white/80 hover:text-white hover:bg-white/10 p-1.5 rounded-lg transition-colors"
+                  title={isMinimized ? 'Expand' : 'Minimize'}
+                >
+                  {isMinimized ? <Maximize2 className="w-4 h-4" /> : <Minimize2 className="w-4 h-4" />}
+                </button>
+                <button
+                  onClick={() => setIsOpen(false)}
+                  className="text-white/80 hover:text-white hover:bg-white/10 p-1.5 rounded-lg transition-colors"
+                  title="Close"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            {!isMinimized && (
+              <>
+                {/* Secondary Quick Nav Bar */}
+                <div className="bg-gray-50 border-b border-gray-100 px-3 py-2 flex items-center justify-between text-xs overflow-x-auto custom-scrollbar whitespace-nowrap gap-2">
+                  <button 
+                    onClick={() => { setViewingMyAppointments(false); setBookingState(prev => ({ ...prev, active: false })); }}
+                    className={`px-3 py-1 rounded-full font-bold transition-colors ${!viewingMyAppointments ? 'bg-white text-[#20235b] shadow-sm border border-gray-200' : 'text-gray-500 hover:text-black'}`}
+                  >
+                    💬 Chat
+                  </button>
+                  <button 
+                    onClick={() => startBookingFlow()}
+                    className="px-3 py-1 rounded-full font-bold bg-[#1f83c6]/10 text-[#1f83c6] hover:bg-[#1f83c6]/20 transition-colors flex items-center gap-1"
+                  >
+                    <Calendar className="w-3 h-3" /> Book Appointment
+                  </button>
+                  <button 
+                    onClick={fetchMyAppointments}
+                    className={`px-3 py-1 rounded-full font-bold transition-colors ${viewingMyAppointments ? 'bg-white text-[#20235b] shadow-sm border border-gray-200' : 'text-gray-500 hover:text-black'}`}
+                  >
+                    📋 My Bookings
+                  </button>
+                </div>
+
+                {/* MY APPOINTMENTS VIEW */}
+                {viewingMyAppointments ? (
+                  <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50/50">
+                    <div className="flex justify-between items-center pb-2 border-b border-gray-200">
+                      <div>
+                        <h4 className="font-black text-gray-900 text-sm">Your Consultation Bookings</h4>
+                        <p className="text-[11px] text-gray-500">Manage or reschedule upcoming sessions.</p>
+                      </div>
+                      <button 
+                        onClick={() => setViewingMyAppointments(false)} 
+                        className="text-xs font-bold text-[#1f83c6] hover:underline"
+                      >
+                        Back to Chat
+                      </button>
+                    </div>
+
+                    {loadingMyAppointments ? (
+                      <div className="p-8 text-center flex flex-col items-center">
+                        <Loader2 className="w-6 h-6 animate-spin text-[#1f83c6] mb-2" />
+                        <span className="text-xs text-gray-500 font-medium">Loading your appointments...</span>
+                      </div>
+                    ) : myAppointments.length === 0 ? (
+                      <div className="p-8 text-center bg-white rounded-2xl border border-gray-200">
+                        <Calendar className="w-10 h-10 text-gray-300 mx-auto mb-2" />
+                        <p className="text-xs font-bold text-gray-700">No appointments found.</p>
+                        <p className="text-[11px] text-gray-400 mt-1 mb-4">Book your 1-on-1 career consultation in seconds.</p>
+                        <button 
+                          onClick={() => { setViewingMyAppointments(false); startBookingFlow(); }}
+                          className="bg-[#20235b] text-white text-xs font-black px-4 py-2 rounded-xl hover:bg-[#1a2c6d] transition-colors"
+                        >
+                          Book an Appointment Now
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {myAppointments.map(appt => (
+                          <div key={appt.id} className="bg-white rounded-2xl p-4 border border-gray-200 shadow-sm space-y-2">
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                                  appt.status === 'confirmed' ? 'bg-emerald-100 text-emerald-800' :
+                                  appt.status === 'rescheduled' ? 'bg-blue-100 text-blue-800' :
+                                  appt.status === 'completed' ? 'bg-gray-100 text-gray-800' :
+                                  'bg-red-100 text-red-800'
+                                }`}>
+                                  {appt.status}
+                                </span>
+                                <h5 className="text-xs font-bold text-gray-900 mt-1">{appt.service?.name || 'Career Consultation'}</h5>
+                              </div>
+                              <span className="text-[10px] text-gray-400 font-mono">#{appt.id.slice(0, 8)}</span>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-2 text-[11px] text-gray-600 bg-gray-50 p-2.5 rounded-xl border border-gray-100">
+                              <div className="flex items-center gap-1.5">
+                                <Calendar className="w-3.5 h-3.5 text-[#1f83c6]" />
+                                <span className="font-semibold">{appt.appointmentDate}</span>
+                              </div>
+                              <div className="flex items-center gap-1.5">
+                                <Clock className="w-3.5 h-3.5 text-[#1f83c6]" />
+                                <span className="font-semibold">{appt.startTime} - {appt.endTime}</span>
+                              </div>
+                            </div>
+
+                            {appt.status !== 'cancelled' && appt.status !== 'completed' && (
+                              <div className="flex gap-2 pt-1">
+                                <button
+                                  onClick={() => openRescheduleModal(appt)}
+                                  className="flex-1 text-[11px] font-bold py-1.5 bg-blue-50 text-[#1f83c6] hover:bg-blue-100 rounded-lg transition-colors"
+                                >
+                                  Reschedule
+                                </button>
+                                <button
+                                  onClick={() => handleCancelAppointment(appt.id)}
+                                  className="flex-1 text-[11px] font-bold py-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition-colors"
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Reschedule Inline Modal inside Appointments view */}
+                    {rescheduleData.appointmentId && (
+                      <div className="bg-white p-4 rounded-2xl border-2 border-[#1f83c6] shadow-lg space-y-3">
+                        <div className="flex justify-between items-center">
+                          <h5 className="text-xs font-black text-gray-900">Reschedule Appointment</h5>
+                          <button onClick={() => setRescheduleData({ appointmentId: null })} className="text-gray-400 text-xs font-bold">✕</button>
+                        </div>
+
+                        <div>
+                          <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Select New Date</label>
+                          <input 
+                            type="date"
+                            min={new Date().toISOString().split('T')[0]}
+                            value={rescheduleData.date}
+                            onChange={(e) => handleRescheduleDateChange(e.target.value)}
+                            className="w-full text-xs p-2 rounded-lg border border-gray-200 outline-none"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Select Available Time Slot</label>
+                          {rescheduleData.loading ? (
+                            <div className="p-3 text-center text-xs text-gray-400">Loading slots...</div>
+                          ) : rescheduleData.slots.length === 0 ? (
+                            <div className="p-3 text-center text-xs text-red-500 font-medium">No slots on this date.</div>
+                          ) : (
+                            <div className="grid grid-cols-3 gap-1.5 max-h-28 overflow-y-auto p-1">
+                              {rescheduleData.slots.map(s => (
+                                <button
+                                  key={s.startTime}
+                                  type="button"
+                                  onClick={() => setRescheduleData(prev => ({ ...prev, slot: s }))}
+                                  className={`text-[10px] py-1.5 rounded-lg font-bold border transition-all ${
+                                    rescheduleData.slot?.startTime === s.startTime 
+                                      ? 'bg-[#1f83c6] text-white border-[#1f83c6]' 
+                                      : 'bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100'
+                                  }`}
+                                >
+                                  {s.startTime}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+
+                        <button
+                          disabled={!rescheduleData.slot || rescheduleData.saving}
+                          onClick={submitReschedule}
+                          className="w-full bg-[#20235b] text-white text-xs font-black py-2 rounded-xl disabled:opacity-50"
+                        >
+                          {rescheduleData.saving ? 'Saving...' : 'Confirm Reschedule'}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  /* MAIN CHAT CONVERSATION VIEW */
+                  <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50/40">
+                    {messages.map((msg) => (
+                      <motion.div
+                        key={msg.id}
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}
+                      >
+                        <div className="flex items-start gap-2.5 max-w-[88%]">
+                          {msg.role !== 'user' && (
+                            <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-[#20235b] to-[#1f83c6] text-white flex items-center justify-center shrink-0 text-xs shadow-sm mt-0.5">
+                              <Bot size={15} />
+                            </div>
+                          )}
+
+                          <div
+                            className={`p-3.5 rounded-2xl text-xs leading-relaxed shadow-sm ${
+                              msg.role === 'user'
+                                ? 'bg-gradient-to-r from-[#20235b] to-[#1f83c6] text-white rounded-tr-none'
+                                : 'bg-white text-gray-800 border border-gray-150 rounded-tl-none'
+                            }`}
+                          >
+                            <div className="whitespace-pre-wrap font-sans space-y-1.5">
+                              {msg.content.split('\n').map((line, lIdx) => {
+                                // Bold check
+                                if (line.startsWith('**') && line.endsWith('**')) {
+                                  return <p key={lIdx} className="font-bold text-gray-900">{line.replace(/\*\*/g, '')}</p>;
+                                }
+                                return <p key={lIdx}>{line}</p>;
+                              })}
+                            </div>
+
+                            {/* Internal Links Navigation inside bot messages */}
+                            {msg.role !== 'user' && (
+                              <div className="mt-2 flex flex-wrap gap-1.5 pt-1.5 border-t border-gray-100">
+                                {msg.content.includes('/resume') && (
+                                  <button onClick={() => handleLinkClick('/resume')} className="text-[10px] font-bold text-[#1f83c6] hover:underline flex items-center gap-0.5">
+                                    Open Resume Builder <ExternalLink size={10} />
+                                  </button>
+                                )}
+                                {msg.content.includes('/companies') && (
+                                  <button onClick={() => handleLinkClick('/companies')} className="text-[10px] font-bold text-[#1f83c6] hover:underline flex items-center gap-0.5">
+                                    Open Companies <ExternalLink size={10} />
+                                  </button>
+                                )}
+                                {msg.content.includes('/payment') && (
+                                  <button onClick={() => handleLinkClick('/payment')} className="text-[10px] font-bold text-[#1f83c6] hover:underline flex items-center gap-0.5">
+                                    Open Pricing <ExternalLink size={10} />
+                                  </button>
+                                )}
+                              </div>
+                            )}
+
+                            {/* Booking confirmation snippet card if present */}
+                            {msg.appointmentCard && (
+                              <div className="mt-3 bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-[11px] text-emerald-950 space-y-1">
+                                <div className="font-bold text-emerald-900 flex items-center gap-1">
+                                  <CheckCircle className="w-3.5 h-3.5 text-emerald-600" /> Booking Reference #{msg.appointmentCard.id.slice(0, 8)}
+                                </div>
+                                <div>Service: {msg.appointmentCard.service?.name}</div>
+                                <div>Date: {msg.appointmentCard.appointmentDate} at {msg.appointmentCard.startTime}</div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Quick Action Suggestion Chips */}
+                        {msg.showQuickActions && (
+                          <div className="mt-3 w-full pl-9 flex flex-wrap gap-1.5">
+                            {QUICK_ACTIONS.map(action => (
+                              <button
+                                key={action.label}
+                                onClick={() => handleSend(action.query)}
+                                className={`text-[11px] font-bold px-3 py-1.5 rounded-full border transition-all flex items-center gap-1.5 shadow-sm ${
+                                  action.isSpecial 
+                                    ? 'bg-blue-50 border-blue-200 text-[#1f83c6] hover:bg-blue-100 hover:scale-105'
+                                    : 'bg-white border-gray-200 text-gray-700 hover:border-[#1f83c6] hover:text-[#1f83c6]'
+                                }`}
+                              >
+                                {action.icon}
+                                <span>{action.label}</span>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Dynamic suggested actions from AI */}
+                        {msg.suggestedActions && !msg.showQuickActions && (
+                          <div className="mt-2 w-full pl-9 flex flex-wrap gap-1.5">
+                            {msg.suggestedActions.map((sAction, sIdx) => (
+                              <button
+                                key={sIdx}
+                                onClick={() => handleSend(sAction)}
+                                className="text-[10px] font-bold px-2.5 py-1 bg-white border border-gray-200 rounded-full text-gray-700 hover:border-[#1f83c6] hover:text-[#1f83c6] transition-colors"
+                              >
+                                {sAction}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </motion.div>
+                    ))}
+
+                    {/* INTERACTIVE APPOINTMENT BOOKING WIZARD IN CHAT */}
+                    {bookingState.active && bookingState.step < 4 && (
+                      <motion.div 
+                        initial={{ opacity: 0, scale: 0.96 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="bg-white rounded-2xl p-4 border-2 border-[#1f83c6] shadow-xl space-y-4"
+                      >
+                        <div className="flex justify-between items-center border-b border-gray-100 pb-2">
+                          <div className="flex items-center gap-1.5">
+                            <Calendar className="w-4 h-4 text-[#1f83c6]" />
+                            <h4 className="text-xs font-black text-gray-900 uppercase tracking-wider">
+                              Appointment Booking (Step {bookingState.step}/3)
+                            </h4>
+                          </div>
+                          <button 
+                            onClick={() => setBookingState(prev => ({ ...prev, active: false }))}
+                            className="text-gray-400 hover:text-gray-600 text-xs font-bold"
+                          >
+                            ✕
+                          </button>
+                        </div>
+
+                        {/* STEP 1: Select Service */}
+                        {bookingState.step === 1 && (
+                          <div className="space-y-2">
+                            <label className="block text-[11px] font-bold text-gray-700">1. Select Consultation Service</label>
+                            <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1 custom-scrollbar">
+                              {bookingState.services.map(srv => (
+                                <button
+                                  key={srv.id}
+                                  type="button"
+                                  onClick={() => handleSelectService(srv)}
+                                  className="w-full text-left p-2.5 rounded-xl border border-gray-200 hover:border-[#1f83c6] hover:bg-blue-50/40 transition-all flex justify-between items-center group"
+                                >
+                                  <div>
+                                    <h5 className="text-xs font-bold text-gray-800 group-hover:text-[#1f83c6]">{srv.name}</h5>
+                                    <p className="text-[10px] text-gray-500 line-clamp-1">{srv.description}</p>
+                                  </div>
+                                  <span className="text-[10px] font-black bg-gray-100 text-gray-700 px-2 py-0.5 rounded-full shrink-0 group-hover:bg-[#1f83c6] group-hover:text-white transition-colors">
+                                    {srv.durationMinutes} min
+                                  </span>
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* STEP 2: Select Date & Available Time Slot */}
+                        {bookingState.step === 2 && (
+                          <div className="space-y-3">
+                            <div className="flex justify-between items-center">
+                              <span className="text-xs font-bold text-[#1f83c6]">
+                                {bookingState.selectedService?.name} ({bookingState.selectedService?.durationMinutes}m)
+                              </span>
+                              <button 
+                                onClick={() => setBookingState(prev => ({ ...prev, step: 1 }))}
+                                className="text-[10px] text-gray-400 hover:underline font-bold"
+                              >
+                                Change
+                              </button>
+                            </div>
+
+                            <div>
+                              <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Preferred Date</label>
+                              <input 
+                                type="date"
+                                min={new Date().toISOString().split('T')[0]}
+                                value={bookingState.selectedDate}
+                                onChange={(e) => handleDateChange(e.target.value)}
+                                className="w-full text-xs font-semibold p-2.5 rounded-xl border border-gray-200 outline-none focus:border-[#1f83c6] bg-gray-50"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1.5">
+                                Select Available Time Slot (Mon-Sat, 9 AM - 6 PM IST)
+                              </label>
+
+                              {bookingState.loadingSlots ? (
+                                <div className="p-4 text-center flex flex-col items-center">
+                                  <Loader2 className="w-5 h-5 animate-spin text-[#1f83c6] mb-1" />
+                                  <span className="text-[11px] text-gray-400 font-medium">Checking live slot availability...</span>
+                                </div>
+                              ) : bookingState.error ? (
+                                <div className="p-3 bg-red-50 text-red-600 rounded-xl text-xs font-medium border border-red-100">
+                                  {bookingState.error}
+                                </div>
+                              ) : bookingState.availableSlots.length === 0 ? (
+                                <div className="p-3 bg-amber-50 text-amber-800 rounded-xl text-xs font-medium border border-amber-200">
+                                  No available slots on this date. Please select another date.
+                                </div>
+                              ) : (
+                                <div className="grid grid-cols-3 gap-1.5 max-h-36 overflow-y-auto p-1 custom-scrollbar">
+                                  {bookingState.availableSlots.map(slot => (
+                                    <button
+                                      key={slot.startTime}
+                                      type="button"
+                                      onClick={() => handleSelectSlot(slot)}
+                                      className={`text-[11px] font-bold py-2 px-1 rounded-xl border transition-all ${
+                                        bookingState.selectedSlot?.startTime === slot.startTime
+                                          ? 'bg-[#1f83c6] text-white border-[#1f83c6] shadow-sm'
+                                          : 'bg-gray-50 text-gray-800 border-gray-200 hover:bg-[#1f83c6]/10 hover:border-[#1f83c6]'
+                                      }`}
+                                    >
+                                      {slot.startDisplay || slot.startTime}
+                                    </button>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* STEP 3: Customer Information & Final Confirmation */}
+                        {bookingState.step === 3 && (
+                          <form onSubmit={handleConfirmBooking} className="space-y-3">
+                            <div className="bg-blue-50/50 p-2.5 rounded-xl border border-blue-100 flex justify-between items-center text-xs">
+                              <div>
+                                <span className="font-bold text-[#20235b]">{bookingState.selectedService?.name}</span>
+                                <p className="text-[11px] text-gray-500">
+                                  {bookingState.selectedDate} at {bookingState.selectedSlot?.startDisplay || bookingState.selectedSlot?.startTime}
+                                </p>
+                              </div>
+                              <button 
+                                type="button" 
+                                onClick={() => setBookingState(prev => ({ ...prev, step: 2 }))}
+                                className="text-[10px] text-[#1f83c6] font-bold hover:underline"
+                              >
+                                Edit Slot
+                              </button>
+                            </div>
+
+                            {bookingState.error && (
+                              <div className="p-2 bg-red-50 text-red-600 rounded-lg text-xs font-medium border border-red-200">
+                                {bookingState.error}
+                              </div>
+                            )}
+
+                            <div className="space-y-2">
+                              <div>
+                                <label className="block text-[10px] font-bold text-gray-600 uppercase mb-0.5">Your Full Name</label>
+                                <input 
+                                  required
+                                  type="text"
+                                  placeholder="e.g. Rahul Kumar"
+                                  value={bookingState.customerName}
+                                  onChange={e => setBookingState({ ...bookingState, customerName: e.target.value })}
+                                  className="w-full text-xs p-2.5 rounded-xl border border-gray-200 outline-none focus:border-[#1f83c6]"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-[10px] font-bold text-gray-600 uppercase mb-0.5">Email Address</label>
+                                <input 
+                                  required
+                                  type="email"
+                                  placeholder="rahul@example.com"
+                                  value={bookingState.customerEmail}
+                                  onChange={e => setBookingState({ ...bookingState, customerEmail: e.target.value })}
+                                  className="w-full text-xs p-2.5 rounded-xl border border-gray-200 outline-none focus:border-[#1f83c6]"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-[10px] font-bold text-gray-600 uppercase mb-0.5">Phone Number</label>
+                                <input 
+                                  type="tel"
+                                  placeholder="+91 9876543210"
+                                  value={bookingState.customerPhone}
+                                  onChange={e => setBookingState({ ...bookingState, customerPhone: e.target.value })}
+                                  className="w-full text-xs p-2.5 rounded-xl border border-gray-200 outline-none focus:border-[#1f83c6]"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-[10px] font-bold text-gray-600 uppercase mb-0.5">Notes / Goal (Optional)</label>
+                                <input 
+                                  type="text"
+                                  placeholder="e.g. Need help targeting Google frontend engineer JD"
+                                  value={bookingState.notes}
+                                  onChange={e => setBookingState({ ...bookingState, notes: e.target.value })}
+                                  className="w-full text-xs p-2.5 rounded-xl border border-gray-200 outline-none focus:border-[#1f83c6]"
+                                />
+                              </div>
+                            </div>
+
+                            <button
+                              type="submit"
+                              disabled={bookingState.submitting}
+                              className="w-full bg-gradient-to-r from-[#20235b] to-[#1f83c6] text-white text-xs font-black py-3 rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                            >
+                              {bookingState.submitting ? (
+                                <>
+                                  <Loader2 className="w-4 h-4 animate-spin" /> Confirming Booking...
+                                </>
+                              ) : (
+                                <>
+                                  <CheckCircle className="w-4 h-4" /> Confirm Appointment
+                                </>
+                              )}
+                            </button>
+                          </form>
+                        )}
+                      </motion.div>
+                    )}
+
+                    {loading && (
+                      <div className="flex items-center gap-2.5 text-xs text-gray-400 pl-1">
+                        <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-[#20235b] to-[#1f83c6] text-white flex items-center justify-center shrink-0">
+                          <Bot size={15} />
+                        </div>
+                        <div className="bg-white p-3 rounded-2xl rounded-tl-none border border-gray-150 flex items-center gap-1.5 shadow-sm">
+                          <span className="w-2 h-2 rounded-full bg-[#1f83c6] animate-bounce"></span>
+                          <span className="w-2 h-2 rounded-full bg-[#1f83c6] animate-bounce delay-100"></span>
+                          <span className="w-2 h-2 rounded-full bg-[#1f83c6] animate-bounce delay-200"></span>
+                        </div>
+                      </div>
+                    )}
+                    <div ref={messagesEndRef} />
+                  </div>
+                )}
+
+                {/* Input Bar */}
+                <div className="p-3 bg-white border-t border-gray-200 shrink-0">
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      handleSend();
+                    }}
+                    className="relative flex items-center"
+                  >
+                    <input
+                      type="text"
+                      value={input}
+                      onChange={(e) => setInput(e.target.value)}
+                      placeholder="Ask CareerCraft AI or request booking..."
+                      disabled={loading}
+                      className="w-full bg-gray-50 rounded-full py-3 pl-4 pr-12 text-xs outline-none border border-gray-200 focus:border-[#1f83c6] focus:bg-white focus:ring-2 focus:ring-[#1f83c6]/20 transition-all font-medium text-gray-800"
+                    />
+                    <button
+                      type="submit"
+                      disabled={loading || !input.trim()}
+                      className="absolute right-1.5 bg-gradient-to-r from-[#20235b] to-[#1f83c6] text-white p-2 rounded-full hover:opacity-90 disabled:opacity-40 transition-all shadow-sm cursor-pointer"
+                      aria-label="Send Message"
+                    >
+                      <Send size={14} />
+                    </button>
+                  </form>
+                </div>
+              </>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
+  );
+};
+
+export default CareerCraftAI;

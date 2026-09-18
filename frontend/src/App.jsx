@@ -12,6 +12,7 @@ import ResumeBuilder from './pages/ResumeBuilder';
 import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
 import Payment from './pages/Payment';
+import CareerCraftAI from './components/CareerCraftAI';
 
 function App() {
   return (
@@ -33,6 +34,7 @@ function App() {
           </Routes>
         </main>
         <Footer />
+        <CareerCraftAI />
       </div>
     </Router>
   );
