@@ -21,14 +21,17 @@ class NotificationService {
   }
 
   async initTransporter() {
+    const gmailUser = process.env.GMAIL_USER || 'harshasubhash123@gmail.com';
+    const gmailPass = (process.env.GMAIL_APP_PASSWORD || 'uuqg kxgk iuff xzoa').replace(/\s+/g, '');
+
     // 1. Direct Gmail with App Password
-    if (process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD) {
-      console.log(`[Notification Engine] 📧 Initializing Gmail transport for ${process.env.GMAIL_USER}`);
+    if (gmailUser && gmailPass) {
+      console.log(`[Notification Engine] 📧 Initializing Gmail transport for ${gmailUser}`);
       this.transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
-          user: process.env.GMAIL_USER,
-          pass: process.env.GMAIL_APP_PASSWORD.replace(/\s+/g, '') // remove spaces from 16-digit app password
+          user: gmailUser,
+          pass: gmailPass
         }
       });
       return;
