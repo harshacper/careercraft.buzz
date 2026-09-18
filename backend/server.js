@@ -17,8 +17,20 @@ const app = express();
 app.use(express.json({ limit: '10mb' })); // Increased limit for base64 resumes
 app.use(cors());
 
+// Normalize /_/backend prefix if present
+app.use((req, res, next) => {
+  if (req.url.startsWith('/_/backend')) {
+    req.url = req.url.replace(/^\/_\/backend/, '') || '/';
+  }
+  next();
+});
+
 // Initialize Appointment and Customer Database Models
-initAppointmentDb();
+try {
+  initAppointmentDb();
+} catch (err) {
+  console.error('Database init skipped/error:', err.message);
+}
 
 app.use('/api/auth', authRoutes);
 app.use('/api/chat', chatRoutes);
@@ -28,13 +40,17 @@ app.use('/api/payment', paymentRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/appointments', appointmentRoutes);
 
+app.get('/api', (req, res) => {
+  res.send('AI Career Navigator API is running...');
+});
+
 app.get('/', (req, res) => {
   res.send('AI Career Navigator API (SQL Version) is running...');
 });
 
 const PORT = process.env.PORT || 5000;
 
-if (process.env.NODE_ENV !== 'production') {
+if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL && require.main === module) {
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
   });

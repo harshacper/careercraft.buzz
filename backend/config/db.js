@@ -1,9 +1,14 @@
 const { Sequelize } = require('sequelize');
 const path = require('path');
+const os = require('os');
+
+const storagePath = process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME
+  ? path.join(os.tmpdir(), 'database.sqlite')
+  : path.join(__dirname, '..', 'database.sqlite');
 
 const sequelize = new Sequelize({
   dialect: 'sqlite',
-  storage: path.join(__dirname, '..', 'database.sqlite'),
+  storage: storagePath,
   logging: false,
 });
 

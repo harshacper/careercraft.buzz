@@ -1,10 +1,6 @@
 const express = require('express');
 const axios = require('axios');
 const router = express.Router();
-const Groq = require('groq-sdk');
-const groq = new Groq({ 
-  apiKey: process.env.GROQ_API_KEY
-});
 
 router.post('/analyze', async (req, res) => {
   const { resumeContent, resumeFileName, jdContent, jdFileName } = req.body;
