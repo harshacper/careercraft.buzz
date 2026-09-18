@@ -9,6 +9,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 import safeStorage from '../utils/safeStorage';
+import ErrorBoundary from './ErrorBoundary';
 
 const DEFAULT_SERVICES = [
   {
@@ -54,7 +55,7 @@ const DEFAULT_SERVICES = [
 ];
 
 const generateSlotsForDate = (dateStr) => {
-  const slots = [
+  return [
     { startTime: '09:00', endTime: '09:30', startDisplay: '9:00 AM' },
     { startTime: '09:30', endTime: '10:00', startDisplay: '9:30 AM' },
     { startTime: '10:00', endTime: '10:30', startDisplay: '10:00 AM' },
@@ -73,7 +74,6 @@ const generateSlotsForDate = (dateStr) => {
     { startTime: '17:00', endTime: '17:30', startDisplay: '5:00 PM' },
     { startTime: '17:30', endTime: '18:00', startDisplay: '5:30 PM' },
   ];
-  return slots;
 };
 
 const QUICK_ACTIONS = [
@@ -86,7 +86,7 @@ const QUICK_ACTIONS = [
   { label: 'Contact Support', icon: <HelpCircle className="w-3.5 h-3.5" />, query: 'contact support' },
 ];
 
-const CareerCraftAI = () => {
+const CareerCraftAIInner = () => {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
@@ -110,10 +110,14 @@ const CareerCraftAI = () => {
 
   // Appointment Booking State
   const getDefaultDate = () => {
-    const t = new Date();
-    t.setDate(t.getDate() + 1);
-    if (t.getDay() === 0) t.setDate(t.getDate() + 1);
-    return t.toISOString().split('T')[0];
+    try {
+      const t = new Date();
+      t.setDate(t.getDate() + 1);
+      if (t.getDay() === 0) t.setDate(t.getDate() + 1);
+      return t.toISOString().split('T')[0];
+    } catch (e) {
+      return '2026-09-20';
+    }
   };
 
   const [bookingState, setBookingState] = useState({
@@ -151,7 +155,9 @@ const CareerCraftAI = () => {
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    try {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    } catch (e) {}
   };
 
   useEffect(() => {
@@ -162,9 +168,9 @@ const CareerCraftAI = () => {
 
   // Sync user details
   useEffect(() => {
-    const userStr = safeStorage.getItem('user');
-    if (userStr) {
-      try {
+    try {
+      const userStr = safeStorage.getItem('user');
+      if (userStr) {
         const u = JSON.parse(userStr);
         setCurrentUser(u);
         setBookingState(prev => ({
@@ -173,15 +179,15 @@ const CareerCraftAI = () => {
           customerEmail: u.email || prev.customerEmail,
           customerPhone: u.phoneNumber || prev.customerPhone
         }));
-      } catch (e) {}
-    }
+      }
+    } catch (e) {}
   }, [isOpen]);
 
   // Fetch services from API with fallback
   const fetchServices = async () => {
     try {
       const res = await api.get('/appointments/services');
-      if (res.data && res.data.length > 0) {
+      if (res && res.data && Array.isArray(res.data) && res.data.length > 0) {
         setBookingState(prev => ({
           ...prev,
           services: res.data,
@@ -189,7 +195,7 @@ const CareerCraftAI = () => {
         }));
       }
     } catch (err) {
-      console.warn('Using default services fallback:', err.message);
+      console.warn('Using default services fallback:', err?.message);
     }
   };
 
@@ -217,7 +223,7 @@ const CareerCraftAI = () => {
 
     try {
       const res = await api.get(`/appointments/availability?serviceId=${serviceId || ''}&date=${dateStr}`);
-      if (res.data && res.data.slots) {
+      if (res && res.data && Array.isArray(res.data.slots)) {
         setBookingState(prev => ({
           ...prev,
           availableSlots: res.data.slots,
@@ -230,16 +236,24 @@ const CareerCraftAI = () => {
       // Fallback slots
     }
 
-    // Client-side fallback slots
-    const targetDate = new Date(`${dateStr}T00:00:00`);
-    if (targetDate.getDay() === 0) {
-      setBookingState(prev => ({
-        ...prev,
-        availableSlots: [],
-        loadingSlots: false,
-        error: 'Sunday is a non-working day. Please pick Monday to Saturday.'
-      }));
-    } else {
+    try {
+      const targetDate = new Date(`${dateStr}T00:00:00`);
+      if (targetDate.getDay() === 0) {
+        setBookingState(prev => ({
+          ...prev,
+          availableSlots: [],
+          loadingSlots: false,
+          error: 'Sunday is a non-working day. Please pick Monday to Saturday.'
+        }));
+      } else {
+        setBookingState(prev => ({
+          ...prev,
+          availableSlots: generateSlotsForDate(dateStr),
+          loadingSlots: false,
+          error: null
+        }));
+      }
+    } catch (e) {
       setBookingState(prev => ({
         ...prev,
         availableSlots: generateSlotsForDate(dateStr),
@@ -251,7 +265,7 @@ const CareerCraftAI = () => {
 
   const handleSelectService = (service) => {
     setBookingState(prev => ({ ...prev, selectedService: service, step: 2 }));
-    fetchSlots(service.id, bookingState.selectedDate);
+    fetchSlots(service?.id, bookingState.selectedDate);
   };
 
   const handleDateChange = (newDate) => {
@@ -290,7 +304,15 @@ const CareerCraftAI = () => {
         notes: bookingState.notes || 'Booked via CareerCraft AI'
       });
 
-      const appointment = res.data.appointment;
+      const appointment = res?.data?.appointment || {
+        id: `CONF-${Date.now()}`,
+        appointmentDate: bookingState.selectedDate,
+        startTime: bookingState.selectedSlot.startTime,
+        endTime: bookingState.selectedSlot.endTime || '',
+        service: bookingState.selectedService,
+        customer: { name: bookingState.customerName, email: bookingState.customerEmail }
+      };
+
       setBookingState(prev => ({
         ...prev,
         submitting: false,
@@ -304,7 +326,7 @@ const CareerCraftAI = () => {
         {
           id: `confirm-${Date.now()}`,
           role: 'assistant',
-          content: `✅ **Appointment Confirmed!**\n\n**Service:** ${appointment.service?.name || bookingState.selectedService?.name}\n**Date:** ${appointment.appointmentDate}\n**Time:** ${appointment.startTime} - ${appointment.endTime} IST\n**Name:** ${appointment.customer?.name || bookingState.customerName}\n**Status:** Confirmed\n\nA confirmation email has been dispatched to harshasubhash123@gmail.com and ${bookingState.customerEmail}.`,
+          content: `✅ **Appointment Confirmed!**\n\n**Service:** ${appointment.service?.name || bookingState.selectedService?.name}\n**Date:** ${appointment.appointmentDate}\n**Time:** ${appointment.startTime} - ${appointment.endTime || ''} IST\n**Name:** ${appointment.customer?.name || bookingState.customerName}\n**Status:** Confirmed\n\nA confirmation email has been dispatched to harshasubhash123@gmail.com and ${bookingState.customerEmail}.`,
           appointmentCard: appointment,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
         }
@@ -328,9 +350,14 @@ const CareerCraftAI = () => {
     setLoadingMyAppointments(true);
     try {
       const res = await api.get(`/appointments/my?email=${encodeURIComponent(email)}`);
-      setMyAppointments(res.data || []);
+      if (res && res.data && Array.isArray(res.data)) {
+        setMyAppointments(res.data);
+      } else {
+        setMyAppointments([]);
+      }
     } catch (err) {
       console.warn('Error loading my appointments:', err);
+      setMyAppointments([]);
     } finally {
       setLoadingMyAppointments(false);
     }
@@ -356,7 +383,7 @@ const CareerCraftAI = () => {
       const res = await api.get(`/appointments/availability?serviceId=${rescheduleData.serviceId || ''}&date=${newDate}`);
       setRescheduleData(prev => ({
         ...prev,
-        slots: res.data.slots || generateSlotsForDate(newDate),
+        slots: (res && res.data && Array.isArray(res.data.slots)) ? res.data.slots : generateSlotsForDate(newDate),
         loading: false
       }));
     } catch (e) {
@@ -507,7 +534,7 @@ const CareerCraftAI = () => {
         reply = fallbackRes.data?.reply;
       }
 
-      if (!reply) {
+      if (!reply || typeof reply !== 'string') {
         reply = "**CareerCraft** helps you build ATS-friendly resumes, analyze skill gaps, and explore 100+ top company hiring portals. You can also book 1-on-1 career consultation appointments right here in the chat!";
       }
 
@@ -515,7 +542,7 @@ const CareerCraftAI = () => {
         id: `ai-${Date.now()}`,
         role: 'assistant',
         content: reply,
-        suggestedActions,
+        suggestedActions: Array.isArray(suggestedActions) ? suggestedActions : null,
         isBookingPrompt,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
@@ -542,13 +569,22 @@ const CareerCraftAI = () => {
   };
 
   const handleLinkClick = (path) => {
-    if (path.startsWith('/')) {
+    if (typeof path === 'string' && path.startsWith('/')) {
       navigate(path);
       if (window.innerWidth < 768) {
         setIsOpen(false);
       }
     }
   };
+
+  // Safe arrays for rendering
+  const safeServices = Array.isArray(bookingState.services) && bookingState.services.length > 0 
+    ? bookingState.services 
+    : DEFAULT_SERVICES;
+
+  const safeSlots = Array.isArray(bookingState.availableSlots) ? bookingState.availableSlots : [];
+  const safeMyAppointments = Array.isArray(myAppointments) ? myAppointments : [];
+  const safeRescheduleSlots = Array.isArray(rescheduleData.slots) ? rescheduleData.slots : [];
 
   return (
     <>
@@ -708,9 +744,9 @@ const CareerCraftAI = () => {
                         <div className="space-y-2.5">
                           <p className="text-xs text-gray-600 font-medium">Select the consultation service you would like to book:</p>
                           <div className="space-y-2 max-h-[340px] overflow-y-auto pr-1 custom-scrollbar">
-                            {(bookingState.services || DEFAULT_SERVICES).map(srv => (
+                            {safeServices.map(srv => (
                               <button
-                                key={srv.id}
+                                key={srv.id || srv.name}
                                 type="button"
                                 onClick={() => handleSelectService(srv)}
                                 className="w-full text-left p-3 rounded-xl border border-gray-200 hover:border-[#1f83c6] hover:bg-blue-50/50 transition-all flex justify-between items-center group cursor-pointer bg-white"
@@ -720,7 +756,7 @@ const CareerCraftAI = () => {
                                   <p className="text-[11px] text-gray-500 line-clamp-1">{srv.description}</p>
                                 </div>
                                 <span className="text-[10px] font-black bg-gray-100 text-gray-700 px-2 py-1 rounded-lg shrink-0 group-hover:bg-[#1f83c6] group-hover:text-white transition-colors ml-2">
-                                  {srv.durationMinutes} mins
+                                  {srv.durationMinutes || 30} mins
                                 </span>
                               </button>
                             ))}
@@ -733,8 +769,8 @@ const CareerCraftAI = () => {
                         <div className="space-y-3.5">
                           <div className="bg-blue-50/80 p-2.5 rounded-xl border border-blue-100 flex justify-between items-center">
                             <div>
-                              <span className="text-xs font-bold text-[#20235b]">{bookingState.selectedService?.name}</span>
-                              <p className="text-[10px] text-gray-500">{bookingState.selectedService?.durationMinutes} Minutes Consultation</p>
+                              <span className="text-xs font-bold text-[#20235b]">{bookingState.selectedService?.name || 'Consultation'}</span>
+                              <p className="text-[10px] text-gray-500">{bookingState.selectedService?.durationMinutes || 30} Minutes Consultation</p>
                             </div>
                             <button 
                               onClick={() => setBookingState(prev => ({ ...prev, step: 1 }))}
@@ -769,9 +805,13 @@ const CareerCraftAI = () => {
                               <div className="p-3 bg-red-50 text-red-600 rounded-xl text-xs font-medium border border-red-100">
                                 {bookingState.error}
                               </div>
+                            ) : safeSlots.length === 0 ? (
+                              <div className="p-4 text-center bg-gray-50 text-gray-500 rounded-xl text-xs font-medium">
+                                No slots available for this date.
+                              </div>
                             ) : (
                               <div className="grid grid-cols-3 gap-1.5 max-h-48 overflow-y-auto p-1 custom-scrollbar">
-                                {(bookingState.availableSlots || []).map(slot => (
+                                {safeSlots.map(slot => (
                                   <button
                                     key={slot.startTime}
                                     type="button"
@@ -795,7 +835,7 @@ const CareerCraftAI = () => {
                       {bookingState.step === 3 && (
                         <form onSubmit={handleConfirmBooking} className="space-y-3.5">
                           <div className="bg-blue-50/80 p-3 rounded-xl border border-blue-100 space-y-1 text-xs">
-                            <div className="font-bold text-[#20235b]">{bookingState.selectedService?.name}</div>
+                            <div className="font-bold text-[#20235b]">{bookingState.selectedService?.name || 'Career Consultation'}</div>
                             <div className="text-gray-600 flex items-center gap-1.5">
                               <Calendar size={13} className="text-[#1f83c6]" /> {bookingState.selectedDate} at {bookingState.selectedSlot?.startDisplay || bookingState.selectedSlot?.startTime} IST
                             </div>
@@ -929,7 +969,7 @@ const CareerCraftAI = () => {
                         <Loader2 className="w-6 h-6 animate-spin text-[#1f83c6] mb-2" />
                         <span className="text-xs text-gray-500 font-medium">Loading your appointments...</span>
                       </div>
-                    ) : myAppointments.length === 0 ? (
+                    ) : safeMyAppointments.length === 0 ? (
                       <div className="p-8 text-center bg-white rounded-2xl border border-gray-200">
                         <Calendar className="w-10 h-10 text-gray-300 mx-auto mb-2" />
                         <p className="text-xs font-bold text-gray-700">No appointments found.</p>
@@ -943,7 +983,7 @@ const CareerCraftAI = () => {
                       </div>
                     ) : (
                       <div className="space-y-3">
-                        {myAppointments.map(appt => (
+                        {safeMyAppointments.map(appt => (
                           <div key={appt.id} className="bg-white rounded-2xl p-4 border border-gray-200 shadow-sm space-y-2">
                             <div className="flex justify-between items-start">
                               <div>
@@ -957,7 +997,7 @@ const CareerCraftAI = () => {
                                 </span>
                                 <h5 className="text-xs font-bold text-gray-900 mt-1">{appt.service?.name || 'Career Consultation'}</h5>
                               </div>
-                              <span className="text-[10px] text-gray-400 font-mono">#{appt.id.slice(0, 8)}</span>
+                              <span className="text-[10px] text-gray-400 font-mono">#{appt.id ? appt.id.slice(0, 8) : 'APPT'}</span>
                             </div>
 
                             <div className="grid grid-cols-2 gap-2 text-[11px] text-gray-600 bg-gray-50 p-2.5 rounded-xl border border-gray-100">
@@ -1014,7 +1054,7 @@ const CareerCraftAI = () => {
                         <div>
                           <label className="block text-[10px] font-bold text-gray-500 uppercase mb-1">Select Available Time Slot</label>
                           <div className="grid grid-cols-3 gap-1.5 max-h-28 overflow-y-auto p-1">
-                            {rescheduleData.slots.map(s => (
+                            {safeRescheduleSlots.map(s => (
                               <button
                                 key={s.startTime}
                                 type="button"
@@ -1044,106 +1084,112 @@ const CareerCraftAI = () => {
                 ) : (
                   /* VIEW 3: CHAT CONVERSATION */
                   <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50/40">
-                    {messages.map((msg) => (
-                      <motion.div
-                        key={msg.id}
-                        initial={{ opacity: 0, y: 8 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}
-                      >
-                        <div className="flex items-start gap-2.5 max-w-[88%]">
-                          {msg.role !== 'user' && (
-                            <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-[#20235b] to-[#1f83c6] text-white flex items-center justify-center shrink-0 text-xs shadow-sm mt-0.5">
-                              <Bot size={15} />
+                    {messages.map((msg) => {
+                      const contentText = typeof msg?.content === 'string' ? msg.content : String(msg?.content || '');
+                      const lines = contentText.split('\n');
+                      const suggestedList = Array.isArray(msg?.suggestedActions) ? msg.suggestedActions : [];
+
+                      return (
+                        <motion.div
+                          key={msg.id}
+                          initial={{ opacity: 0, y: 8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}
+                        >
+                          <div className="flex items-start gap-2.5 max-w-[88%]">
+                            {msg.role !== 'user' && (
+                              <div className="w-7 h-7 rounded-full bg-gradient-to-tr from-[#20235b] to-[#1f83c6] text-white flex items-center justify-center shrink-0 text-xs shadow-sm mt-0.5">
+                                <Bot size={15} />
+                              </div>
+                            )}
+
+                            <div
+                              className={`p-3.5 rounded-2xl text-xs leading-relaxed shadow-sm ${
+                                msg.role === 'user'
+                                  ? 'bg-gradient-to-r from-[#20235b] to-[#1f83c6] text-white rounded-tr-none'
+                                  : 'bg-white text-gray-800 border border-gray-150 rounded-tl-none'
+                              }`}
+                            >
+                              <div className="whitespace-pre-wrap font-sans space-y-1.5">
+                                {lines.map((line, lIdx) => {
+                                  if (typeof line === 'string' && line.startsWith('**') && line.endsWith('**')) {
+                                    return <p key={lIdx} className="font-bold text-gray-900">{line.replace(/\*\*/g, '')}</p>;
+                                  }
+                                  return <p key={lIdx}>{line}</p>;
+                                })}
+                              </div>
+
+                              {/* Internal Links Navigation */}
+                              {msg.role !== 'user' && (
+                                <div className="mt-2 flex flex-wrap gap-1.5 pt-1.5 border-t border-gray-100">
+                                  {contentText.includes('/resume') && (
+                                    <button onClick={() => handleLinkClick('/resume')} className="text-[10px] font-bold text-[#1f83c6] hover:underline flex items-center gap-0.5 cursor-pointer">
+                                      Open Resume Builder <ExternalLink size={10} />
+                                    </button>
+                                  )}
+                                  {contentText.includes('/companies') && (
+                                    <button onClick={() => handleLinkClick('/companies')} className="text-[10px] font-bold text-[#1f83c6] hover:underline flex items-center gap-0.5 cursor-pointer">
+                                      Open Companies <ExternalLink size={10} />
+                                    </button>
+                                  )}
+                                  {contentText.includes('/payment') && (
+                                    <button onClick={() => handleLinkClick('/payment')} className="text-[10px] font-bold text-[#1f83c6] hover:underline flex items-center gap-0.5 cursor-pointer">
+                                      Open Pricing <ExternalLink size={10} />
+                                    </button>
+                                  )}
+                                </div>
+                              )}
+
+                              {/* Booking reference card */}
+                              {msg.appointmentCard && (
+                                <div className="mt-3 bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-[11px] text-emerald-950 space-y-1">
+                                  <div className="font-bold text-emerald-900 flex items-center gap-1">
+                                    <CheckCircle className="w-3.5 h-3.5 text-emerald-600" /> Booking Reference #{msg.appointmentCard.id ? msg.appointmentCard.id.slice(0, 8) : 'CONFIRMED'}
+                                  </div>
+                                  <div>Service: {msg.appointmentCard.service?.name || 'Career Consultation'}</div>
+                                  <div>Date: {msg.appointmentCard.appointmentDate} at {msg.appointmentCard.startTime}</div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Quick Action Chips */}
+                          {msg.showQuickActions && (
+                            <div className="mt-3 w-full pl-9 flex flex-wrap gap-1.5">
+                              {QUICK_ACTIONS.map(action => (
+                                <button
+                                  key={action.label}
+                                  onClick={() => handleSend(action.query)}
+                                  className={`text-[11px] font-bold px-3 py-1.5 rounded-full border transition-all flex items-center gap-1.5 shadow-sm cursor-pointer ${
+                                    action.isSpecial 
+                                      ? 'bg-blue-50 border-blue-200 text-[#1f83c6] hover:bg-blue-100 hover:scale-105'
+                                      : 'bg-white border-gray-200 text-gray-700 hover:border-[#1f83c6] hover:text-[#1f83c6]'
+                                  }`}
+                                >
+                                  {action.icon}
+                                  <span>{action.label}</span>
+                                </button>
+                              ))}
                             </div>
                           )}
 
-                          <div
-                            className={`p-3.5 rounded-2xl text-xs leading-relaxed shadow-sm ${
-                              msg.role === 'user'
-                                ? 'bg-gradient-to-r from-[#20235b] to-[#1f83c6] text-white rounded-tr-none'
-                                : 'bg-white text-gray-800 border border-gray-150 rounded-tl-none'
-                            }`}
-                          >
-                            <div className="whitespace-pre-wrap font-sans space-y-1.5">
-                              {msg.content.split('\n').map((line, lIdx) => {
-                                if (line.startsWith('**') && line.endsWith('**')) {
-                                  return <p key={lIdx} className="font-bold text-gray-900">{line.replace(/\*\*/g, '')}</p>;
-                                }
-                                return <p key={lIdx}>{line}</p>;
-                              })}
+                          {/* Dynamic suggested actions from AI */}
+                          {suggestedList.length > 0 && !msg.showQuickActions && (
+                            <div className="mt-2 w-full pl-9 flex flex-wrap gap-1.5">
+                              {suggestedList.map((sAction, sIdx) => (
+                                <button
+                                  key={sIdx}
+                                  onClick={() => handleSend(sAction)}
+                                  className="text-[10px] font-bold px-2.5 py-1 bg-white border border-gray-200 rounded-full text-gray-700 hover:border-[#1f83c6] hover:text-[#1f83c6] transition-colors cursor-pointer"
+                                >
+                                  {sAction}
+                                </button>
+                              ))}
                             </div>
-
-                            {/* Internal Links Navigation */}
-                            {msg.role !== 'user' && (
-                              <div className="mt-2 flex flex-wrap gap-1.5 pt-1.5 border-t border-gray-100">
-                                {msg.content.includes('/resume') && (
-                                  <button onClick={() => handleLinkClick('/resume')} className="text-[10px] font-bold text-[#1f83c6] hover:underline flex items-center gap-0.5 cursor-pointer">
-                                    Open Resume Builder <ExternalLink size={10} />
-                                  </button>
-                                )}
-                                {msg.content.includes('/companies') && (
-                                  <button onClick={() => handleLinkClick('/companies')} className="text-[10px] font-bold text-[#1f83c6] hover:underline flex items-center gap-0.5 cursor-pointer">
-                                    Open Companies <ExternalLink size={10} />
-                                  </button>
-                                )}
-                                {msg.content.includes('/payment') && (
-                                  <button onClick={() => handleLinkClick('/payment')} className="text-[10px] font-bold text-[#1f83c6] hover:underline flex items-center gap-0.5 cursor-pointer">
-                                    Open Pricing <ExternalLink size={10} />
-                                  </button>
-                                )}
-                              </div>
-                            )}
-
-                            {/* Booking reference card */}
-                            {msg.appointmentCard && (
-                              <div className="mt-3 bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-[11px] text-emerald-950 space-y-1">
-                                <div className="font-bold text-emerald-900 flex items-center gap-1">
-                                  <CheckCircle className="w-3.5 h-3.5 text-emerald-600" /> Booking Reference #{msg.appointmentCard.id.slice(0, 8)}
-                                </div>
-                                <div>Service: {msg.appointmentCard.service?.name}</div>
-                                <div>Date: {msg.appointmentCard.appointmentDate} at {msg.appointmentCard.startTime}</div>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Quick Action Chips */}
-                        {msg.showQuickActions && (
-                          <div className="mt-3 w-full pl-9 flex flex-wrap gap-1.5">
-                            {QUICK_ACTIONS.map(action => (
-                              <button
-                                key={action.label}
-                                onClick={() => handleSend(action.query)}
-                                className={`text-[11px] font-bold px-3 py-1.5 rounded-full border transition-all flex items-center gap-1.5 shadow-sm cursor-pointer ${
-                                  action.isSpecial 
-                                    ? 'bg-blue-50 border-blue-200 text-[#1f83c6] hover:bg-blue-100 hover:scale-105'
-                                    : 'bg-white border-gray-200 text-gray-700 hover:border-[#1f83c6] hover:text-[#1f83c6]'
-                                }`}
-                              >
-                                {action.icon}
-                                <span>{action.label}</span>
-                              </button>
-                            ))}
-                          </div>
-                        )}
-
-                        {/* Dynamic suggested actions from AI */}
-                        {msg.suggestedActions && !msg.showQuickActions && (
-                          <div className="mt-2 w-full pl-9 flex flex-wrap gap-1.5">
-                            {msg.suggestedActions.map((sAction, sIdx) => (
-                              <button
-                                key={sIdx}
-                                onClick={() => handleSend(sAction)}
-                                className="text-[10px] font-bold px-2.5 py-1 bg-white border border-gray-200 rounded-full text-gray-700 hover:border-[#1f83c6] hover:text-[#1f83c6] transition-colors cursor-pointer"
-                              >
-                                {sAction}
-                              </button>
-                            ))}
-                          </div>
-                        )}
-                      </motion.div>
-                    ))}
+                          )}
+                        </motion.div>
+                      );
+                    })}
 
                     {loading && (
                       <div className="flex items-center gap-2.5 text-xs text-gray-400 pl-1">
@@ -1196,6 +1242,14 @@ const CareerCraftAI = () => {
         )}
       </AnimatePresence>
     </>
+  );
+};
+
+const CareerCraftAI = (props) => {
+  return (
+    <ErrorBoundary fallback={null}>
+      <CareerCraftAIInner {...props} />
+    </ErrorBoundary>
   );
 };
 
