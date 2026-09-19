@@ -4,10 +4,14 @@
   "rewrites": [
     {
       "source": "/_/backend/api/:path*",
-      "destination": "/api/:path*"
+      "destination": "/api/index.js"
     },
     {
-      "source": "/((?!api/).*)",
+      "source": "/api/:path*",
+      "destination": "/api/index.js"
+    },
+    {
+      "source": "/((?!api/|_/backend/).*)",
       "destination": "/index.html"
     }
   ]
