@@ -6,12 +6,13 @@ import {
   CalendarCheck, ArrowRight, ShieldCheck, HelpCircle, Loader2, FileText,
   Target, Zap, Building2, CreditCard, ChevronDown, ChevronLeft
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import api from '../utils/api';
 import safeStorage from '../utils/safeStorage';
 import ErrorBoundary from './ErrorBoundary';
 
 const DEFAULT_SERVICES = [
+
   {
     id: '11111111-1111-1111-1111-111111111101',
     name: 'Resume Consultation & Review',
@@ -159,6 +160,12 @@ const downloadIcsFile = ({ title, description, location, startDate, startTime, d
 
 const CareerCraftAIInner = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  if (location.pathname === '/chat') {
+    return null;
+  }
+
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [input, setInput] = useState('');

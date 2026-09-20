@@ -25,12 +25,10 @@ router.post('/', async (req, res) => {
   } catch (error) {
     console.error("Chat Router Error:", error.message);
     res.json({
-      reply: "**CareerCraft** is an AI career platform helping you build ATS-optimized resumes, analyze skill gaps, and explore 100+ top company hiring portals. How can I assist your career today?",
-      suggestedActions: ['Resume Builder', 'ATS Score', 'Book Appointment']
+      reply: "I am ready to assist you with any questions. Please try sending your query again!",
+      provider: 'default'
     });
   }
 });
-
-module.exports = router;
 
 module.exports = router;
