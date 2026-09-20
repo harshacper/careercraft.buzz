@@ -82,7 +82,31 @@ class AIProvider {
     // Add current user message
     messages.push({ role: 'user', content: message });
 
-    // 2. Try OpenRouter with Gemini 2.5 Flash / GPT-4o-mini
+    // 2. Try Groq first for ultra-fast response (~200ms latency)
+    if (this.groqKey) {
+      try {
+        const groq = new Groq({ apiKey: this.groqKey });
+        const chatCompletion = await groq.chat.completions.create({
+          model: 'llama-3.3-70b-versatile',
+          messages,
+          temperature: 0.5,
+          max_tokens: 800
+        });
+
+        const reply = chatCompletion.choices?.[0]?.message?.content;
+        if (reply) {
+          return {
+            reply,
+            provider: 'groq',
+            model: 'llama-3.3-70b-versatile'
+          };
+        }
+      } catch (err) {
+        console.warn('Groq chat completion failed, trying OpenRouter fallback...', err.message);
+      }
+    }
+
+    // 3. Try OpenRouter as fallback
     if (this.openRouterKey || this.customApiKey) {
       try {
         const apiKey = this.customApiKey || this.openRouterKey;
@@ -94,14 +118,14 @@ class AIProvider {
             model,
             messages,
             temperature: 0.6,
-            max_tokens: 1024
+            max_tokens: 800
           },
           {
             headers: {
               'Authorization': `Bearer ${apiKey}`,
               'Content-Type': 'application/json'
             },
-            timeout: 15000
+            timeout: 5000
           }
         );
 
@@ -114,31 +138,7 @@ class AIProvider {
           };
         }
       } catch (err) {
-        console.warn('OpenRouter chat completion failed, trying fallback...', err.response?.data?.error || err.message);
-      }
-    }
-
-    // 3. Try Groq
-    if (this.groqKey) {
-      try {
-        const groq = new Groq({ apiKey: this.groqKey });
-        const chatCompletion = await groq.chat.completions.create({
-          model: 'llama-3.3-70b-versatile',
-          messages,
-          temperature: 0.6,
-          max_tokens: 1024
-        });
-
-        const reply = chatCompletion.choices?.[0]?.message?.content;
-        if (reply) {
-          return {
-            reply,
-            provider: 'groq',
-            model: 'llama-3.3-70b-versatile'
-          };
-        }
-      } catch (err) {
-        console.warn('Groq chat completion failed:', err.message);
+        console.warn('OpenRouter chat completion failed:', err.response?.data?.error || err.message);
       }
     }
 
