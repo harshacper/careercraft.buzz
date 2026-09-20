@@ -28,6 +28,7 @@ function App() {
             <Route path="/chat" element={<Chatbot />} />
             <Route path="/companies" element={<Companies />} />
             <Route path="/resume" element={<ResumeBuilder />} />
+            <Route path="/skill-gap" element={<ResumeBuilder />} />
             <Route path="/payment" element={<Payment />} />
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/admin/dashboard" element={<AdminDashboard />} />

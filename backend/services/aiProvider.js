@@ -82,7 +82,49 @@ class AIProvider {
     // Add current user message
     messages.push({ role: 'user', content: message });
 
-    // 2. Try Groq first for ultra-fast response (~200ms latency)
+    // 2. Try OpenRouter with Gemini & Llama models
+    if (this.openRouterKey || this.customApiKey) {
+      const apiKey = this.customApiKey || this.openRouterKey;
+      const candidateModels = [
+        this.customModel || 'google/gemini-2.5-flash',
+        'meta-llama/llama-3.3-70b-instruct',
+        'deepseek/deepseek-chat'
+      ];
+
+      for (const model of candidateModels) {
+        try {
+          const completion = await axios.post(
+            'https://openrouter.ai/api/v1/chat/completions',
+            {
+              model,
+              messages,
+              temperature: 0.6,
+              max_tokens: 800
+            },
+            {
+              headers: {
+                'Authorization': `Bearer ${apiKey}`,
+                'Content-Type': 'application/json'
+              },
+              timeout: 10000
+            }
+          );
+
+          const reply = completion.data?.choices?.[0]?.message?.content;
+          if (reply && typeof reply === 'string') {
+            return {
+              reply: reply.trim(),
+              provider: 'openrouter',
+              model
+            };
+          }
+        } catch (err) {
+          console.warn(`OpenRouter (${model}) failed:`, err.response?.data?.error?.message || err.message);
+        }
+      }
+    }
+
+    // 3. Fallback to Groq if key exists and accessible
     if (this.groqKey) {
       try {
         const groq = new Groq({ apiKey: this.groqKey });
@@ -102,43 +144,7 @@ class AIProvider {
           };
         }
       } catch (err) {
-        console.warn('Groq chat completion failed, trying OpenRouter fallback...', err.message);
-      }
-    }
-
-    // 3. Try OpenRouter as fallback
-    if (this.openRouterKey || this.customApiKey) {
-      try {
-        const apiKey = this.customApiKey || this.openRouterKey;
-        const model = this.customModel || 'google/gemini-2.5-flash';
-
-        const completion = await axios.post(
-          'https://openrouter.ai/api/v1/chat/completions',
-          {
-            model,
-            messages,
-            temperature: 0.6,
-            max_tokens: 800
-          },
-          {
-            headers: {
-              'Authorization': `Bearer ${apiKey}`,
-              'Content-Type': 'application/json'
-            },
-            timeout: 5000
-          }
-        );
-
-        const reply = completion.data?.choices?.[0]?.message?.content;
-        if (reply) {
-          return {
-            reply,
-            provider: 'openrouter',
-            model
-          };
-        }
-      } catch (err) {
-        console.warn('OpenRouter chat completion failed:', err.response?.data?.error || err.message);
+        console.warn('Groq chat completion failed:', err.message);
       }
     }
 
