@@ -329,16 +329,14 @@ class AppointmentService {
     appointmentJson.customer = customer;
     appointmentJson.service = service.toJSON();
 
-    // 6. Trigger notification
-    try {
-      await notificationService.sendConfirmationNotification({
-        appointment: appointmentJson,
-        customer,
-        service: service.toJSON()
-      });
-    } catch (err) {
-      console.warn('Notification failed:', err.message);
-    }
+    // 6. Trigger notification asynchronously in background (non-blocking)
+    notificationService.sendConfirmationNotification({
+      appointment: appointmentJson,
+      customer,
+      service: service.toJSON()
+    }).catch(err => {
+      console.warn('[Notification Engine] Background dispatch error:', err.message);
+    });
 
     return appointmentJson;
   }

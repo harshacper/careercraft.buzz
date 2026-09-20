@@ -32,7 +32,10 @@ class NotificationService {
         auth: {
           user: gmailUser,
           pass: gmailPass
-        }
+        },
+        connectionTimeout: 5000,
+        greetingTimeout: 5000,
+        socketTimeout: 8000
       });
       return;
     }
@@ -47,7 +50,10 @@ class NotificationService {
         auth: {
           user: process.env.SMTP_USER,
           pass: process.env.SMTP_PASS
-        }
+        },
+        connectionTimeout: 5000,
+        greetingTimeout: 5000,
+        socketTimeout: 8000
       });
       return;
     }
@@ -62,7 +68,10 @@ class NotificationService {
         auth: {
           user: this.testAccount.user,
           pass: this.testAccount.pass
-        }
+        },
+        connectionTimeout: 5000,
+        greetingTimeout: 5000,
+        socketTimeout: 8000
       });
       console.log(`[Notification Engine] 🌐 Initialized live Ethereal mail transport (${this.testAccount.user})`);
     } catch (err) {
@@ -113,17 +122,17 @@ class NotificationService {
             <span class="badge">${appointment.status.toUpperCase()}</span>
             <h2 style="margin: 0 0 8px; font-size: 18px; color: #0f172a;">${title}</h2>
             <p style="margin: 0 0 16px; font-size: 13px; color: #475569;">
-              Booking Reference: <strong style="font-family: monospace; color: #20235b;">#${appointment.id.slice(0, 8)}</strong>
+              Booking Reference: <strong style="font-family: monospace; color: #20235b;">#${(appointment.id || '').slice(0, 8)}</strong>
             </p>
 
             <div class="details-box">
               <div class="detail-row">
                 <span class="detail-label">Service</span>
-                <span class="detail-value highlight">${service.name}</span>
+                <span class="detail-value highlight">${service?.name || 'Career Consultation'}</span>
               </div>
               <div class="detail-row">
                 <span class="detail-label">Duration</span>
-                <span class="detail-value">${service.durationMinutes || 30} Minutes</span>
+                <span class="detail-value">${service?.durationMinutes || 30} Minutes</span>
               </div>
               <div class="detail-row">
                 <span class="detail-label">Appointment Date</span>
@@ -135,15 +144,15 @@ class NotificationService {
               </div>
               <div class="detail-row">
                 <span class="detail-label">Customer Name</span>
-                <span class="detail-value">${customer.name}</span>
+                <span class="detail-value">${customer?.name}</span>
               </div>
               <div class="detail-row">
                 <span class="detail-label">Customer Email</span>
-                <span class="detail-value">${customer.email}</span>
+                <span class="detail-value">${customer?.email}</span>
               </div>
               <div class="detail-row">
                 <span class="detail-label">Customer Phone</span>
-                <span class="detail-value">${customer.phone || 'N/A'}</span>
+                <span class="detail-value">${customer?.phone || 'N/A'}</span>
               </div>
               ${appointment.notes ? `
               <div class="detail-row">
@@ -175,7 +184,7 @@ class NotificationService {
   }
 
   /**
-   * Send appointment confirmation to BOTH Admin (harshasubhash123@gmail.com) and Customer
+   * Send appointment confirmation to BOTH Admin (harshasubhash123@gmail.com) and Customer concurrently
    */
   async sendConfirmationNotification({ appointment, customer, service }) {
     if (!this.transporter) {
@@ -186,18 +195,16 @@ class NotificationService {
       {
         email: this.adminEmail,
         type: 'host',
-        subject: `🔔 [New Booking] ${service.name} with ${customer.name} on ${appointment.appointmentDate} at ${appointment.startTime} IST`
+        subject: `🔔 [New Booking] ${service?.name || 'Consultation'} with ${customer?.name} on ${appointment.appointmentDate} at ${appointment.startTime} IST`
       },
       {
-        email: customer.email,
+        email: customer?.email,
         type: 'customer',
-        subject: `✅ CareerCraft Appointment Confirmed: ${service.name} on ${appointment.appointmentDate}`
+        subject: `✅ CareerCraft Appointment Confirmed: ${service?.name || 'Consultation'} on ${appointment.appointmentDate}`
       }
-    ];
+    ].filter(r => Boolean(r.email));
 
-    const results = [];
-
-    for (const r of recipients) {
+    const promises = recipients.map(async (r) => {
       const htmlContent = this.generateBookingEmailHtml({
         appointment,
         customer,
@@ -217,26 +224,20 @@ class NotificationService {
             html: htmlContent
           });
 
-          const previewUrl = nodemailer.getTestMessageUrl(info);
-          if (previewUrl) {
-            console.log(`[Notification Engine] 🌐 Live Email Web Preview for ${r.email}: ${previewUrl}`);
-          }
           console.log(`[Notification Engine] ✅ Email dispatched to ${r.email}! MessageId: ${info.messageId}`);
-          results.push({ email: r.email, success: true, messageId: info.messageId, previewUrl });
+          return { email: r.email, success: true, messageId: info.messageId };
         } catch (err) {
           console.error(`[Notification Engine] ⚠️ Failed sending to ${r.email}:`, err.message);
-          results.push({ email: r.email, success: false, error: err.message });
+          return { email: r.email, success: false, error: err.message };
         }
       } else {
         console.log(`[Notification Engine] 📝 Booking details logged for ${r.email}`);
-        results.push({ email: r.email, success: true, simulated: true });
+        return { email: r.email, success: true, simulated: true };
       }
-    }
+    });
 
-    return {
-      success: true,
-      recipients: results
-    };
+    const results = await Promise.allSettled(promises);
+    return { success: true, results };
   }
 
   /**

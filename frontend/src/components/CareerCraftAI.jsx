@@ -375,7 +375,7 @@ const CareerCraftAIInner = () => {
         appointmentDate: bookingState.selectedDate,
         startTime: bookingState.selectedSlot.startTime,
         notes: bookingState.notes || 'Booked via CareerCraft AI'
-      });
+      }, { timeout: 5000 });
 
       if (res?.data?.appointment) {
         confirmedAppointment = res.data.appointment;
