@@ -70,6 +70,14 @@ app.get(['/api/health', '/health', '/api', '/'], (req, res) => {
   res.json({ status: 'ok', message: 'AI Career Navigator API is running...' });
 });
 
+// Express error handling middleware
+app.use((err, req, res, next) => {
+  console.error('Express server error:', err);
+  res.status(500).json({
+    error: err.message || 'Internal server error',
+    path: req.path
+  });
+});
 
 const PORT = process.env.PORT || 5000;
 
@@ -80,3 +88,4 @@ if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL && require.main
 }
 
 module.exports = app;
+
