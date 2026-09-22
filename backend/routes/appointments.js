@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const appointmentService = require('../services/appointmentService');
+const calendarService = require('../services/calendarService');
 const jwt = require('jsonwebtoken');
 
 // Helper to extract optional auth user
@@ -45,8 +46,105 @@ const requireAdmin = (req, res, next) => {
   return res.status(401).json({ message: 'Admin authorization required.' });
 };
 
+// ==========================================
+// CALENDAR API ENDPOINTS
+// ==========================================
+
+// Calendar metadata & links for a booking
+router.get('/calendar/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { Appointment, Customer, Service } = require('../models/appointmentModels');
+    const appt = await Appointment.findByPk(id, {
+      include: [
+        { model: Customer, as: 'customer' },
+        { model: Service, as: 'service' }
+      ]
+    });
+
+    if (!appt) {
+      return res.status(404).json({ error: 'Appointment not found' });
+    }
+
+    const host = req.get('host') || 'careercraft.buzz';
+    const protocol = req.protocol === 'https' || req.headers['x-forwarded-proto'] === 'https' ? 'https' : 'http';
+    const baseUrl = `${protocol}://${host}`;
+
+    const calendarData = calendarService.getCalendarBundle(appt.toJSON(), baseUrl);
+    res.json({ success: true, calendar: calendarData });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Download .ics file by appointment ID
+router.get(['/ics/:id', '/calendar/:id/ics'], async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { Appointment, Customer, Service } = require('../models/appointmentModels');
+    const appt = await Appointment.findByPk(id, {
+      include: [
+        { model: Customer, as: 'customer' },
+        { model: Service, as: 'service' }
+      ]
+    });
+
+    if (!appt) {
+      return res.status(404).send('Appointment not found');
+    }
+
+    const apptData = appt.toJSON();
+    const icsString = calendarService.generateIcsFile({
+      id: apptData.id,
+      title: `CareerCraft Consultation: ${apptData.service?.name || 'Career Strategy'}`,
+      description: `CareerCraft 1-on-1 Consultation Session.\nCustomer: ${apptData.customer?.name}\nStatus: ${apptData.status}\nBooking Reference: #${(apptData.id || '').slice(0, 8)}`,
+      date: apptData.appointmentDate,
+      startTime: apptData.startTime,
+      endTime: apptData.endTime,
+      customerName: apptData.customer?.name,
+      customerEmail: apptData.customer?.email
+    });
+
+    res.setHeader('Content-Type', 'text/calendar; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="careercraft-booking-${apptData.id.slice(0, 8)}.ics"`);
+    res.send(icsString);
+  } catch (err) {
+    res.status(500).send(`Error generating calendar invite: ${err.message}`);
+  }
+});
+
+// Dynamic .ics generator via query parameters
+router.get('/calendar-invite/download', (req, res) => {
+  try {
+    const { title, date, startTime, endTime, customerName, customerEmail } = req.query;
+    if (!date || !startTime) {
+      return res.status(400).send('date and startTime query params are required.');
+    }
+
+    const icsString = calendarService.generateIcsFile({
+      title: title || 'CareerCraft Consultation Session',
+      description: 'CareerCraft 1-on-1 Consultation Session. Manage at https://careercraft.buzz',
+      date,
+      startTime,
+      endTime: endTime || startTime,
+      customerName: customerName || 'Client',
+      customerEmail: customerEmail || ''
+    });
+
+    res.setHeader('Content-Type', 'text/calendar; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="careercraft-session-${date}.ics"`);
+    res.send(icsString);
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
+// ==========================================
+// APPOINTMENT SERVICE & BOOKING ENDPOINTS
+// ==========================================
+
 // 1. GET /api/appointments/services - List all active services
-router.get('/services', async (req, res) => {
+router.get(['/services', '/services/'], async (req, res) => {
   try {
     const services = await appointmentService.getServices();
     res.json(services);
@@ -56,7 +154,7 @@ router.get('/services', async (req, res) => {
 });
 
 // 2. GET /api/appointments/availability - Check available slots for a date & service
-router.get('/availability', async (req, res) => {
+router.get(['/availability', '/availability/'], async (req, res) => {
   try {
     const { serviceId, date } = req.query;
     if (!date) {
@@ -71,7 +169,7 @@ router.get('/availability', async (req, res) => {
 });
 
 // 3. POST /api/appointments - Book a new appointment
-router.post('/', optionalAuth, async (req, res) => {
+router.post(['/', ''], optionalAuth, async (req, res) => {
   try {
     const {
       customerName,
@@ -100,10 +198,16 @@ router.post('/', optionalAuth, async (req, res) => {
       notes
     });
 
+    const host = req.get('host') || 'careercraft.buzz';
+    const protocol = req.protocol === 'https' || req.headers['x-forwarded-proto'] === 'https' ? 'https' : 'http';
+    const baseUrl = `${protocol}://${host}`;
+    const calendarBundle = calendarService.getCalendarBundle(booking, baseUrl);
+
     res.status(201).json({
       success: true,
       message: 'Appointment successfully confirmed!',
-      appointment: booking
+      appointment: booking,
+      calendar: calendarBundle
     });
   } catch (err) {
     console.error('Booking error:', err.message);

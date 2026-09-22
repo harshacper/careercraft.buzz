@@ -416,6 +416,18 @@ const CareerCraftAIInner = () => {
       appointmentDate: bookingState.selectedDate,
       startTime: bookingState.selectedSlot.startTime,
       notes: bookingState.notes || 'Booked via CareerCraft AI'
+    }).then(res => {
+      if (res?.data?.appointment) {
+        const srvAppt = res.data.appointment;
+        setBookingState(prev => ({
+          ...prev,
+          confirmedBooking: {
+            ...prev.confirmedBooking,
+            id: srvAppt.id,
+            calendar: res.data.calendar
+          }
+        }));
+      }
     }).catch(err => console.warn('Background booking sync completed:', err?.message));
   };
 
