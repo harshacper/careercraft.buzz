@@ -401,7 +401,7 @@ const CareerCraftAIInner = () => {
       {
         id: `confirm-${Date.now()}`,
         role: 'assistant',
-        content: `✅ **Appointment Confirmed!**\n\n**Service:** ${confirmedAppointment.service?.name || bookingState.selectedService?.name}\n**Date:** ${confirmedAppointment.appointmentDate}\n**Time:** ${confirmedAppointment.startTime} IST\n**Name:** ${confirmedAppointment.customer?.name || bookingState.customerName}\n**Status:** Confirmed\n\nA confirmation email has been dispatched to harshasubhash123@gmail.com and ${bookingState.customerEmail}.`,
+        content: `✅ **Appointment Confirmed!**\n\n**Service:** ${confirmedAppointment.service?.name || bookingState.selectedService?.name}\n**Date:** ${confirmedAppointment.appointmentDate}\n**Time:** ${confirmedAppointment.startTime} IST\n**Booked For:** ${confirmedAppointment.customer?.name || bookingState.customerName}\n**Status:** Confirmed\n\nA confirmation email and calendar invitation have been sent to **${bookingState.customerEmail}**.`,
         appointmentCard: confirmedAppointment,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       }
@@ -419,23 +419,27 @@ const CareerCraftAIInner = () => {
     }).catch(err => console.warn('Background booking sync completed:', err?.message));
   };
 
-  // Fetch logged in user's appointments
-  const fetchMyAppointments = async () => {
+  // Fetch appointments for any user / email
+  const [lookupEmail, setLookupEmail] = useState('');
+
+  const fetchMyAppointments = async (customEmail) => {
     setActiveTab('my-bookings');
-    const email = currentUser?.email || bookingState.customerEmail;
-    if (!email) {
+    const targetEmail = (customEmail || lookupEmail || currentUser?.email || bookingState.customerEmail || '').trim();
+    if (!targetEmail) {
+      setMyAppointments([]);
       return;
     }
+    setLookupEmail(targetEmail);
     setLoadingMyAppointments(true);
     try {
-      const res = await api.get(`/appointments/my?email=${encodeURIComponent(email)}`);
+      const res = await api.get(`/appointments/my?email=${encodeURIComponent(targetEmail)}`);
       if (res && res.data && Array.isArray(res.data)) {
         setMyAppointments(res.data);
       } else {
         setMyAppointments([]);
       }
     } catch (err) {
-      console.warn('Error loading my appointments:', err);
+      console.warn('Error loading appointments:', err);
       setMyAppointments([]);
     } finally {
       setLoadingMyAppointments(false);
@@ -927,33 +931,52 @@ const CareerCraftAIInner = () => {
                           )}
 
                           <div className="space-y-2.5">
+                            <div className="flex justify-between items-center">
+                              <span className="text-[11px] font-bold text-gray-700">Enter Your Information:</span>
+                              {(bookingState.customerName || bookingState.customerEmail) && (
+                                <button
+                                  type="button"
+                                  onClick={() => setBookingState(prev => ({
+                                    ...prev,
+                                    customerName: '',
+                                    customerEmail: '',
+                                    customerPhone: '',
+                                    notes: ''
+                                  }))}
+                                  className="text-[10px] font-bold text-[#1f83c6] hover:underline cursor-pointer"
+                                >
+                                  Clear / Enter New
+                                </button>
+                              )}
+                            </div>
+
                             <div>
                               <label className="block text-[11px] font-bold text-gray-700 mb-0.5">Your Full Name *</label>
                               <input 
                                 required
                                 type="text"
-                                placeholder="e.g. Harsha Subhash"
+                                placeholder="Enter your full name"
                                 value={bookingState.customerName}
                                 onChange={e => setBookingState({ ...bookingState, customerName: e.target.value })}
                                 className="w-full text-xs p-2.5 rounded-xl border border-gray-200 outline-none focus:border-[#1f83c6] bg-white"
                               />
                             </div>
                             <div>
-                              <label className="block text-[11px] font-bold text-gray-700 mb-0.5">Email Address *</label>
+                              <label className="block text-[11px] font-bold text-gray-700 mb-0.5">Email Address (For Confirmation & Calendar Invite) *</label>
                               <input 
                                 required
                                 type="email"
-                                placeholder="harshasubhash123@gmail.com"
+                                placeholder="your.email@example.com"
                                 value={bookingState.customerEmail}
                                 onChange={e => setBookingState({ ...bookingState, customerEmail: e.target.value })}
                                 className="w-full text-xs p-2.5 rounded-xl border border-gray-200 outline-none focus:border-[#1f83c6] bg-white"
                               />
                             </div>
                             <div>
-                              <label className="block text-[11px] font-bold text-gray-700 mb-0.5">Phone Number</label>
+                              <label className="block text-[11px] font-bold text-gray-700 mb-0.5">Phone Number (Optional)</label>
                               <input 
                                 type="tel"
-                                placeholder="+91 93802 68436"
+                                placeholder="+91 98765 43210"
                                 value={bookingState.customerPhone}
                                 onChange={e => setBookingState({ ...bookingState, customerPhone: e.target.value })}
                                 className="w-full text-xs p-2.5 rounded-xl border border-gray-200 outline-none focus:border-[#1f83c6] bg-white"
@@ -963,7 +986,7 @@ const CareerCraftAIInner = () => {
                               <label className="block text-[11px] font-bold text-gray-700 mb-0.5">Discussion Topic / Goal (Optional)</label>
                               <input 
                                 type="text"
-                                placeholder="e.g. Need resume audit for Google SDE application"
+                                placeholder="e.g. Resume review, interview prep, career roadmap"
                                 value={bookingState.notes}
                                 onChange={e => setBookingState({ ...bookingState, notes: e.target.value })}
                                 className="w-full text-xs p-2.5 rounded-xl border border-gray-200 outline-none focus:border-[#1f83c6] bg-white"
@@ -1067,7 +1090,7 @@ const CareerCraftAIInner = () => {
                     <div className="flex justify-between items-center pb-2 border-b border-gray-200">
                       <div>
                         <h4 className="font-black text-gray-900 text-sm">Your Consultation Bookings</h4>
-                        <p className="text-[11px] text-gray-500">Manage or reschedule upcoming sessions.</p>
+                        <p className="text-[11px] text-gray-500">Manage or reschedule upcoming sessions for any user.</p>
                       </div>
                       <button 
                         onClick={() => setActiveTab('chat')} 
@@ -1077,10 +1100,37 @@ const CareerCraftAIInner = () => {
                       </button>
                     </div>
 
+                    {/* Email Lookup Bar */}
+                    <div className="bg-white p-3 rounded-2xl border border-gray-200 shadow-sm space-y-1.5">
+                      <label className="block text-[11px] font-bold text-gray-700">Check Bookings by Email Address:</label>
+                      <form 
+                        onSubmit={(e) => {
+                          e.preventDefault();
+                          fetchMyAppointments(lookupEmail);
+                        }} 
+                        className="flex gap-2"
+                      >
+                        <input
+                          type="email"
+                          placeholder="Enter your email address..."
+                          value={lookupEmail}
+                          onChange={(e) => setLookupEmail(e.target.value)}
+                          className="flex-1 text-xs p-2.5 rounded-xl border border-gray-200 outline-none focus:border-[#1f83c6] bg-gray-50 focus:bg-white"
+                          required
+                        />
+                        <button
+                          type="submit"
+                          className="bg-[#1f83c6] hover:bg-[#196fa8] text-white text-xs font-bold px-3.5 py-2 rounded-xl transition-colors cursor-pointer"
+                        >
+                          Find
+                        </button>
+                      </form>
+                    </div>
+
                     {loadingMyAppointments ? (
                       <div className="p-8 text-center flex flex-col items-center">
                         <Loader2 className="w-6 h-6 animate-spin text-[#1f83c6] mb-2" />
-                        <span className="text-xs text-gray-500 font-medium">Loading your appointments...</span>
+                        <span className="text-xs text-gray-500 font-medium">Loading appointments for {lookupEmail || 'user'}...</span>
                       </div>
                     ) : safeMyAppointments.length === 0 ? (
                       <div className="p-8 text-center bg-white rounded-2xl border border-gray-200">
