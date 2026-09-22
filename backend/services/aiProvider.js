@@ -139,7 +139,12 @@ class AIProvider {
     // Quick action: Explore CareerCraft
     if (raw === 'explore careercraft' || raw === 'explore') {
       return {
-        reply: `**Welcome to CareerCraft!** 🚀\n\nCareerCraft is your all-in-one AI career development platform. Here is what you can do:\n\n- 📄 **[AI Resume Builder](/resume)**: Build ATS-optimized resumes tailored for high-paying roles.\n- 🎯 **[ATS Score Analyzer](/resume)**: Scan your resume and get immediate keyword optimization.\n- ⚡ **[360° Skill Gap Roadmap](/resume)**: Compare your skills with target job descriptions.\n- 🏢 **[Top 100+ Companies](/companies)**: Explore verified career portals from Big Tech to top startups.\n- 📅 **Book a 1-on-1 Consultation**: Get personalized mentorship from career advisors.\n\nWhat would you like to explore today?`,
+        reply: `**Welcome to CareerCraft!** 🚀\n\nCareerCraft is your all-in-one AI career development platform. Here is what you can do:\n\n- 📄 **[AI Resume Builder](/resume)**: Build ATS-optimized resumes tailored for high-paying roles.\n- 🎯 **[ATS Score Analyzer](/resume)**: Scan your resume and get immediate keyword optimization.\n- ⚡ **[360° Skill Gap Roadmap](/resume)**: Compare your skills with target job descriptions.\n- 🏢 **[Top 100+ Companies](/companies)**: Explore verified career portals from Big Tech to top startups.\n- 📅 **Book a 1-on-1 Consultation**: Get personalized mentorship from career advisors.\n\nWhat would you like to explore today?`
+      };
+    }
+    return null;
+  }
+
   /**
    * General Fallback Engine in case of network issues
    */
@@ -152,3 +157,4 @@ class AIProvider {
 }
 
 module.exports = new AIProvider();
+
