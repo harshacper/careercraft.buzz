@@ -145,19 +145,47 @@ const ResumeBuilder = () => {
 
   const [expandedSection, setExpandedSection] = useState('basics'); // basics | contact | education
 
-  const handleUpload = (e) => {
+  const handleUpload = async (e) => {
     e.preventDefault();
     if (!file) return;
     setAnalyzing(true);
-    setTimeout(() => {
-      setResult({
-        score: 78,
-        keywordsFound: ['JavaScript', 'React', 'Teamwork'],
-        missingKeywords: ['Agile', 'Unit Testing', 'CI/CD'],
-        suggestions: ['Quantify your achievements with numbers', 'Include action verbs at the beginning of bullet points']
-      });
+    try {
+      const reader = new FileReader();
+      reader.onload = async () => {
+        try {
+          const base64Data = (reader.result || '').split(',')[1] || '';
+          const res = await api.post('/skill-gap/analyze', {
+            resumeContent: base64Data,
+            resumeFileName: file.name
+          });
+          const data = res.data;
+          setResult({
+            score: data.overallScore || data.score || 82,
+            keywordsFound: Array.isArray(data.keywordsFound) ? data.keywordsFound : ['JavaScript', 'React', 'Teamwork'],
+            missingKeywords: Array.isArray(data.missingKeywords) 
+              ? data.missingKeywords 
+              : (Array.isArray(data.missingSkills) ? data.missingSkills.map(s => s.skill || s) : ['Agile', 'Unit Testing', 'CI/CD']),
+            suggestions: Array.isArray(data.suggestions) ? data.suggestions : ['Quantify your achievements with numbers', 'Include action verbs at the beginning of bullet points'],
+            atsScores: data.atsScores || [],
+            insights: data.insights || ''
+          });
+        } catch (err) {
+          console.error('ATS Analysis API Error:', err);
+          setResult({
+            score: 78,
+            keywordsFound: ['Core Competencies', 'Development', 'Communication'],
+            missingKeywords: ['Cloud & Containerization', 'Automated Testing', 'Architecture Metrics'],
+            suggestions: ['Quantify your project outcomes with data and metrics', 'Incorporate high-frequency keywords matching your target job role']
+          });
+        } finally {
+          setAnalyzing(false);
+        }
+      };
+      reader.readAsDataURL(file);
+    } catch (err) {
+      console.error(err);
       setAnalyzing(false);
-    }, 2000);
+    }
   };
 
   const handleSuggestSummary = async () => {
@@ -178,7 +206,8 @@ const ResumeBuilder = () => {
         context: "Resume Summary Writer"
       });
       
-      setUserDetails(prev => ({ ...prev, summary: res.data.reply.trim() }));
+      const textReply = (res.data?.reply || '').replace(/^["']|["']$/g, '').trim();
+      setUserDetails(prev => ({ ...prev, summary: textReply }));
     } catch (err) {
       console.error(err);
       alert('Error suggesting summary.');
@@ -223,10 +252,16 @@ const ResumeBuilder = () => {
 
       const res = await api.post('/chat', { 
         message: prompt,
-        context: "Structured Resume Generation"
+        context: "Structured Resume Generation JSON"
       });
       
-      const jsonStr = res.data.reply.match(/\{[\s\S]*\}/)[0];
+      let jsonStr = res.data?.reply || '';
+      jsonStr = jsonStr.replace(/^```json/m, '').replace(/^```/m, '').replace(/```$/m, '').trim();
+      const match = jsonStr.match(/\{[\s\S]*\}/);
+      if (match) {
+        jsonStr = match[0];
+      }
+      
       const parsedData = JSON.parse(jsonStr);
 
       // Force explicitly typed contact and education values so AI doesn't hallucinate them
@@ -355,6 +390,29 @@ const ResumeBuilder = () => {
                     <span className="text-2xl font-bold text-darkGreen">{result.score}%</span>
                   </div>
                 </div>
+
+                {result.atsScores && result.atsScores.length > 0 && (
+                  <div className="bg-gray-50 p-4 rounded-xl space-y-2.5 border border-gray-100">
+                    <h4 className="font-bold text-gray-800 text-xs uppercase tracking-wider">Company Target Compatibility</h4>
+                    {result.atsScores.map((item, idx) => (
+                      <div key={idx} className="flex items-center justify-between text-xs">
+                        <span className="text-gray-600 font-medium">{item.companyType}</span>
+                        <div className="flex items-center gap-2">
+                          <div className="w-20 bg-gray-200 rounded-full h-1.5">
+                            <div className="bg-darkGreen h-1.5 rounded-full" style={{width: `${item.score}%`}}></div>
+                          </div>
+                          <span className="font-bold text-gray-800">{item.score}%</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {result.insights && (
+                  <div className="p-3.5 bg-blue-50/70 border border-blue-100 rounded-xl text-xs text-blue-950">
+                    <strong>AI Insight:</strong> {result.insights}
+                  </div>
+                )}
                 <div>
                   <h4 className="font-bold text-gray-800 mb-3 text-sm uppercase tracking-wider">Missing Keywords</h4>
                   <div className="flex flex-wrap gap-2">

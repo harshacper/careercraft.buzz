@@ -38,7 +38,7 @@ class CalendarService {
   /**
    * Generate Google Calendar Add Event link
    */
-  generateGoogleCalendarUrl({ title, description, location, date, startTime, endTime }) {
+  generateGoogleCalendarUrl({ title, description, location, date, startTime, endTime, customerEmail }) {
     const startObj = this.formatDateTime(date, startTime);
     const endObj = this.formatDateTime(date, endTime || startTime);
 
@@ -52,6 +52,11 @@ class CalendarService {
       location: location || 'Online Video Meeting (CareerCraft)',
       ctz: 'Asia/Kolkata'
     });
+
+    if (customerEmail && customerEmail.trim()) {
+      params.append('add', customerEmail.trim());
+      params.append('authuser', customerEmail.trim());
+    }
 
     return `https://calendar.google.com/calendar/render?${params.toString()}`;
   }

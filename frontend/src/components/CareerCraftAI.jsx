@@ -87,7 +87,7 @@ const QUICK_ACTIONS = [
   { label: 'Contact Support', icon: <HelpCircle className="w-3.5 h-3.5" />, query: 'contact support' },
 ];
 
-const createGoogleCalendarUrl = ({ title, description, location, startDate, startTime, durationMinutes = 30 }) => {
+const createGoogleCalendarUrl = ({ title, description, location, startDate, startTime, durationMinutes = 30, customerEmail }) => {
   try {
     const cleanDate = (startDate || '').replace(/-/g, '');
     const [hStr, mStr] = (startTime || '09:00').slice(0, 5).split(':');
@@ -110,6 +110,11 @@ const createGoogleCalendarUrl = ({ title, description, location, startDate, star
       details: description || 'Career consultation call on CareerCraft.buzz',
       location: location || 'Google Meet / Online - CareerCraft.buzz'
     });
+
+    if (customerEmail && customerEmail.trim()) {
+      params.append('add', customerEmail.trim());
+      params.append('authuser', customerEmail.trim());
+    }
     
     return `https://calendar.google.com/calendar/render?${params.toString()}`;
   } catch (e) {
@@ -1051,7 +1056,8 @@ const CareerCraftAIInner = () => {
                                 location: 'Google Meet / Online - CareerCraft.buzz',
                                 startDate: bookingState.selectedDate,
                                 startTime: bookingState.selectedSlot?.startTime || '09:00',
-                                durationMinutes: bookingState.selectedService?.durationMinutes || 30
+                                durationMinutes: bookingState.selectedService?.durationMinutes || 30,
+                                customerEmail: bookingState.customerEmail || currentUser?.email
                               })}
                               target="_blank"
                               rel="noopener noreferrer"
@@ -1059,6 +1065,10 @@ const CareerCraftAIInner = () => {
                             >
                               <Calendar className="w-4 h-4" /> Add to Google Calendar
                             </a>
+
+                            <p className="text-[11px] text-gray-500 italic">
+                              💡 Click <strong>"Add to Google Calendar"</strong> above, then click <strong>"Save"</strong> on Google Calendar to add it to your schedule.
+                            </p>
 
                             <button
                               type="button"
@@ -1195,7 +1205,8 @@ const CareerCraftAIInner = () => {
                                     location: 'Google Meet / Online - CareerCraft.buzz',
                                     startDate: appt.appointmentDate,
                                     startTime: appt.startTime,
-                                    durationMinutes: appt.service?.durationMinutes || 30
+                                    durationMinutes: appt.service?.durationMinutes || 30,
+                                    customerEmail: appt.customer?.email || currentUser?.email || bookingState.customerEmail
                                   })}
                                   target="_blank"
                                   rel="noopener noreferrer"
@@ -1350,7 +1361,8 @@ const CareerCraftAIInner = () => {
                                       location: 'Google Meet / Online - CareerCraft.buzz',
                                       startDate: msg.appointmentCard.appointmentDate,
                                       startTime: msg.appointmentCard.startTime,
-                                      durationMinutes: msg.appointmentCard.service?.durationMinutes || 30
+                                      durationMinutes: msg.appointmentCard.service?.durationMinutes || 30,
+                                      customerEmail: msg.appointmentCard.customer?.email || currentUser?.email || bookingState.customerEmail
                                     })}
                                     target="_blank"
                                     rel="noopener noreferrer"

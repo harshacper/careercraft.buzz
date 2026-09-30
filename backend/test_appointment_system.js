@@ -39,10 +39,15 @@ async function runTests() {
     assert(services.some(s => s.name.includes('Resume Consultation')), 'Should contain "Resume Consultation & Review"');
     console.log(`Found ${services.length} active consultation services.\n`);
 
-    // 3. Test Availability Calculation for a Future Working Day (e.g. 2026-09-25)
+    // 3. Test Availability Calculation for a Future Working Day (e.g. next Friday)
     console.log('--- Test 2: Availability Calculation ---');
     const testService = services[0];
-    const testDate = '2026-09-25'; // Friday
+    const futureDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    // Find next Friday
+    while (futureDate.getDay() !== 5) {
+      futureDate.setDate(futureDate.getDate() + 1);
+    }
+    const testDate = futureDate.toISOString().split('T')[0];
     const avail = await appointmentService.getAvailableSlots(testService.id, testDate);
     
     assert(avail.isWorkingDay === true, 'Friday should be a working day');
@@ -52,7 +57,9 @@ async function runTests() {
 
     // 4. Test Sunday / Holiday Availability
     console.log('--- Test 3: Non-Working Day / Holiday Handling ---');
-    const sundayDate = '2026-09-27'; // Sunday
+    const sundayObj = new Date(futureDate);
+    sundayObj.setDate(sundayObj.getDate() + 2); // Friday + 2 = Sunday
+    const sundayDate = sundayObj.toISOString().split('T')[0];
     const sundayAvail = await appointmentService.getAvailableSlots(testService.id, sundayDate);
     assert(sundayAvail.isWorkingDay === false, 'Sunday should be marked as non-working day with 0 slots');
     assert(sundayAvail.slots.length === 0, 'Sunday slots list should be empty');
