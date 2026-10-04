@@ -89,7 +89,7 @@ class AIProvider {
             model,
             messages,
             temperature: isJsonRequested ? 0.2 : 0.7,
-            max_tokens: 1500
+            max_tokens: isJsonRequested ? 3500 : 1500
           };
 
           if (isJsonRequested) {

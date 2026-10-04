@@ -332,6 +332,12 @@ Return ONLY a strictly valid JSON object matching this schema with NO markdown w
       );
     }
 
+    // Guarantee fallback for jobTitle
+    if (!parsedResult.jobTitle) {
+      const firstLine = jdText.split('\n')[0].replace(/^(job title|role|position|looking for|we are seeking a|we are hiring a)[:\s]+/i, '').trim();
+      parsedResult.jobTitle = (firstLine && firstLine.length < 60) ? firstLine : 'Target Position';
+    }
+
     // Guarantee array types and required structures
     if (!Array.isArray(parsedResult.matchedKeywords)) parsedResult.matchedKeywords = [];
     if (!Array.isArray(parsedResult.missingKeywords)) parsedResult.missingKeywords = [];
@@ -341,6 +347,19 @@ Return ONLY a strictly valid JSON object matching this schema with NO markdown w
     if (!Array.isArray(parsedResult.skillsAnalysis.strongSkills)) parsedResult.skillsAnalysis.strongSkills = [];
     if (!Array.isArray(parsedResult.skillsAnalysis.missingSkills)) parsedResult.skillsAnalysis.missingSkills = [];
     if (!Array.isArray(parsedResult.skillsAnalysis.recommendedSkills)) parsedResult.skillsAnalysis.recommendedSkills = [];
+
+    // Cross-populate if one was populated and the other was empty
+    if (parsedResult.matchedKeywords.length === 0 && parsedResult.skillsAnalysis.strongSkills.length > 0) {
+      parsedResult.matchedKeywords = [...parsedResult.skillsAnalysis.strongSkills];
+    } else if (parsedResult.skillsAnalysis.strongSkills.length === 0 && parsedResult.matchedKeywords.length > 0) {
+      parsedResult.skillsAnalysis.strongSkills = [...parsedResult.matchedKeywords];
+    }
+
+    if (parsedResult.missingKeywords.length === 0 && parsedResult.skillsAnalysis.missingSkills.length > 0) {
+      parsedResult.missingKeywords = [...parsedResult.skillsAnalysis.missingSkills];
+    } else if (parsedResult.skillsAnalysis.missingSkills.length === 0 && parsedResult.missingKeywords.length > 0) {
+      parsedResult.skillsAnalysis.missingSkills = [...parsedResult.missingKeywords];
+    }
 
     if (!Array.isArray(parsedResult.sectionScores) || parsedResult.sectionScores.length === 0) {
       parsedResult.sectionScores = [
