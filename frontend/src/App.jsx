@@ -9,6 +9,7 @@ import Dashboard from './pages/Dashboard';
 import Chatbot from './pages/Chatbot';
 import Companies from './pages/Companies';
 import ResumeBuilder from './pages/ResumeBuilder';
+import AtsAnalyzer from './pages/AtsAnalyzer';
 import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
 import Payment from './pages/Payment';
@@ -28,7 +29,9 @@ function App() {
             <Route path="/chat" element={<Chatbot />} />
             <Route path="/companies" element={<Companies />} />
             <Route path="/resume" element={<ResumeBuilder />} />
-            <Route path="/skill-gap" element={<ResumeBuilder />} />
+            <Route path="/ats-analyzer" element={<AtsAnalyzer />} />
+            <Route path="/ats-score" element={<AtsAnalyzer />} />
+            <Route path="/skill-gap" element={<AtsAnalyzer />} />
             <Route path="/payment" element={<Payment />} />
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/admin/dashboard" element={<AdminDashboard />} />

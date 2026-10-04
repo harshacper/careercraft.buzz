@@ -19,6 +19,7 @@ const skillGapRoutes = require('./routes/skillGap');
 const paymentRoutes = require('./routes/payment');
 const aiRoutes = require('./routes/aiChat');
 const appointmentRoutes = require('./routes/appointments');
+const atsRoutes = require('./routes/atsScore');
 const { initAppointmentDb } = require('./models/appointmentModels');
 
 const app = express();
@@ -65,6 +66,9 @@ app.use('/ai', aiRoutes);
 
 app.use('/api/appointments', appointmentRoutes);
 app.use('/appointments', appointmentRoutes);
+
+app.use('/api/ats', atsRoutes);
+app.use('/ats', atsRoutes);
 
 app.get(['/api/health', '/health', '/api', '/'], (req, res) => {
   res.json({ status: 'ok', message: 'AI Career Navigator API is running...' });

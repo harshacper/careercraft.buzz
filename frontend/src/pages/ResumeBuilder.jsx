@@ -411,14 +411,31 @@ const ResumeBuilder = () => {
         <h1 className="text-4xl font-black text-darkGreen">AI Resume Intelligence</h1>
         <p className="text-gray-600 mt-2">Optimize your current resume or generate a new one from scratch.</p>
         
-        <div className="flex gap-4 mt-8 bg-gray-200 p-1 rounded-2xl">
-          <button onClick={()=>setActiveTab('analyzer')} className={`px-8 py-3 rounded-xl font-bold transition-all ${activeTab==='analyzer' ? 'bg-white shadow-xl text-darkGreen' : 'text-gray-600'}`}>ATS Analyzer</button>
-          <button onClick={()=>setActiveTab('builder')} className={`px-8 py-3 rounded-xl font-bold transition-all ${activeTab==='builder' ? 'bg-white shadow-xl text-darkGreen' : 'text-gray-600'}`}>AI Builder</button>
+        <div className="flex flex-wrap justify-center gap-3 mt-8 bg-gray-200 p-1.5 rounded-2xl">
+          <button onClick={()=>setActiveTab('analyzer')} className={`px-6 py-2.5 rounded-xl font-bold transition-all ${activeTab==='analyzer' ? 'bg-white shadow-xl text-darkGreen' : 'text-gray-600'}`}>Quick Check</button>
+          <button onClick={()=>setActiveTab('builder')} className={`px-6 py-2.5 rounded-xl font-bold transition-all ${activeTab==='builder' ? 'bg-white shadow-xl text-darkGreen' : 'text-gray-600'}`}>AI Builder</button>
+          <button onClick={()=>navigate('/ats-analyzer')} className="px-6 py-2.5 rounded-xl font-bold transition-all bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md hover:shadow-lg flex items-center gap-1.5">
+            <Sparkles className="w-4 h-4" /> Comprehensive ATS Score
+          </button>
         </div>
       </div>
 
       {activeTab === 'analyzer' ? (
-        <div className="grid lg:grid-cols-2 gap-10">
+        <div className="space-y-6">
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 p-5 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-4 shadow-sm">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center font-black text-sm shrink-0">ATS</div>
+              <div>
+                <h3 className="font-bold text-gray-900 text-base">Targeting a specific Job Description?</h3>
+                <p className="text-xs text-gray-600">Get an in-depth 6-factor ATS score (0-100), semantic keyword match, formatting vulnerability scan, and 1-click PDF report.</p>
+              </div>
+            </div>
+            <button onClick={() => navigate('/ats-analyzer')} className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-2.5 rounded-xl text-sm whitespace-nowrap shadow transition-all flex items-center gap-2 shrink-0">
+              Launch Full ATS Scanner <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
+
+          <div className="grid lg:grid-cols-2 gap-10">
           {/* Analyzer View remains unchanged */}
           <div className="glassmorphism p-8 flex flex-col items-center justify-center border-dashed border-2 border-gray-300 min-h-[400px]">
             {!result ? (
@@ -496,6 +513,7 @@ const ResumeBuilder = () => {
               </div>
             )}
           </div>
+        </div>
         </div>
       ) : (
         <div className="grid lg:grid-cols-12 gap-10">
