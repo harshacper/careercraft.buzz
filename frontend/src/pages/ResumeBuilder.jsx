@@ -92,7 +92,7 @@ const defaultResumeData = {
 const ResumeBuilder = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('analyzer'); // analyzer | builder
-  const [userStatus, setUserStatus] = useState({ subscription: 'none', credits: 0 });
+  const [userStatus, setUserStatus] = useState({ subscription: 'none', credits: 2 });
   const [isUnlockModalOpen, setIsUnlockModalOpen] = useState(false);
 
   useEffect(() => {
@@ -368,7 +368,7 @@ const ResumeBuilder = () => {
   const downloadPDF = async () => {
     const token = localStorage.getItem('token');
     if (!token) {
-      alert("Please log in or sign up to download your resume.");
+      alert("Please log in or sign up to download your resume. You receive 2 FREE downloads with your account!");
       navigate('/login');
       return;
     }
@@ -381,7 +381,9 @@ const ResumeBuilder = () => {
 
     // Deduct credit if they have credits and no monthly plan
     if (userStatus.subscription !== 'monthly' && userStatus.credits > 0) {
-      const confirmDownload = window.confirm(`This will consume 1 resume credit (${userStatus.credits} remaining). Do you want to proceed?`);
+      const confirmDownload = window.confirm(
+        `You have ${userStatus.credits} free download credit${userStatus.credits > 1 ? 's' : ''} remaining. Would you like to use 1 credit to download this resume now?`
+      );
       if (!confirmDownload) return;
 
       try {
@@ -389,7 +391,7 @@ const ResumeBuilder = () => {
         setUserStatus(res.data.status);
       } catch (err) {
         console.error("Error consuming download credit:", err);
-        alert("Failed to verify download credit. Please try again.");
+        alert(err.response?.data?.message || "Failed to verify download credit. Please try again.");
         return;
       }
     }
@@ -408,12 +410,12 @@ const ResumeBuilder = () => {
   return (
     <div className="max-w-7xl mx-auto px-6 py-12">
       <div className="flex flex-col items-center mb-10">
-        <h1 className="text-4xl font-black text-darkGreen">AI Resume Intelligence</h1>
+        <h1 className="text-4xl font-black text-black">AI Resume Intelligence</h1>
         <p className="text-gray-600 mt-2">Optimize your current resume or generate a new one from scratch.</p>
         
         <div className="flex flex-wrap justify-center gap-3 mt-8 bg-gray-200 p-1.5 rounded-2xl">
-          <button onClick={()=>setActiveTab('analyzer')} className={`px-6 py-2.5 rounded-xl font-bold transition-all ${activeTab==='analyzer' ? 'bg-white shadow-xl text-darkGreen' : 'text-gray-600'}`}>Quick Check</button>
-          <button onClick={()=>setActiveTab('builder')} className={`px-6 py-2.5 rounded-xl font-bold transition-all ${activeTab==='builder' ? 'bg-white shadow-xl text-darkGreen' : 'text-gray-600'}`}>AI Builder</button>
+          <button onClick={()=>setActiveTab('analyzer')} className={`px-6 py-2.5 rounded-xl font-bold transition-all ${activeTab==='analyzer' ? 'bg-white shadow-xl text-black' : 'text-gray-600'}`}>Quick Check</button>
+          <button onClick={()=>setActiveTab('builder')} className={`px-6 py-2.5 rounded-xl font-bold transition-all ${activeTab==='builder' ? 'bg-white shadow-xl text-black' : 'text-gray-600'}`}>AI Builder</button>
           <button onClick={()=>navigate('/ats-analyzer')} className="px-6 py-2.5 rounded-xl font-bold transition-all bg-black hover:bg-neutral-800 text-white shadow-md hover:shadow-lg flex items-center gap-1.5">
             <Sparkles className="w-4 h-4" /> Comprehensive ATS Score
           </button>
@@ -443,16 +445,16 @@ const ResumeBuilder = () => {
                 <UploadCloud className="w-16 h-16 text-gray-400 mb-4" />
                 <h3 className="text-xl font-bold text-gray-800 mb-2">Upload your resume</h3>
                 <p className="text-gray-500 mb-6 text-center">PDF or DOCX (max 5MB)</p>
-                <input type="file" accept=".pdf,.docx" onChange={(e)=>setFile(e.target.files[0])} className="mb-6 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-darkGreen file:text-white hover:file:bg-opacity-90" />
-                <button type="submit" disabled={!file || analyzing} className="bg-darkGreen text-white px-8 py-3 rounded-full font-bold hover:shadow-lg disabled:opacity-50 transition-all flex items-center gap-2">
+                <input type="file" accept=".pdf,.docx" onChange={(e)=>setFile(e.target.files[0])} className="mb-6 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-black file:text-white hover:file:bg-neutral-800" />
+                <button type="submit" disabled={!file || analyzing} className="bg-black hover:bg-neutral-800 text-white px-8 py-3 rounded-full font-bold hover:shadow-lg disabled:opacity-50 transition-all flex items-center gap-2">
                   {analyzing ? 'Analyzing...' : 'Analyze Now'} <Settings size={18} className={analyzing ? 'animate-spin' : ''}/>
                 </button>
               </form>
             ) : (
               <div className="text-center">
-                <FileText className="w-16 h-16 text-darkGreen mx-auto mb-4" />
+                <FileText className="w-16 h-16 text-black mx-auto mb-4" />
                 <h3 className="text-xl font-bold text-gray-800 mb-2">{file?.name}</h3>
-                <p className="text-green-600 font-medium mb-6">Successfully analyzed</p>
+                <p className="text-emerald-700 font-medium mb-6">Successfully analyzed</p>
                 <button onClick={()=>{setResult(null); setFile(null);}} className="text-gray-500 underline hover:text-gray-800">Analyze another file</button>
               </div>
             )}
@@ -466,9 +468,9 @@ const ResumeBuilder = () => {
                   <span className="font-semibold text-gray-700">Overall ATS Score</span>
                   <div className="flex items-center gap-3">
                     <div className="w-full bg-gray-200 rounded-full h-2.5 w-32">
-                      <div className="bg-darkGreen h-2.5 rounded-full" style={{width: `${result.score}%`}}></div>
+                      <div className="bg-black h-2.5 rounded-full" style={{width: `${result.score}%`}}></div>
                     </div>
-                    <span className="text-2xl font-bold text-darkGreen">{result.score}%</span>
+                    <span className="text-2xl font-bold text-black">{result.score}%</span>
                   </div>
                 </div>
 
@@ -480,7 +482,7 @@ const ResumeBuilder = () => {
                         <span className="text-gray-600 font-medium">{item.companyType}</span>
                         <div className="flex items-center gap-2">
                           <div className="w-20 bg-gray-200 rounded-full h-1.5">
-                            <div className="bg-darkGreen h-1.5 rounded-full" style={{width: `${item.score}%`}}></div>
+                            <div className="bg-black h-1.5 rounded-full" style={{width: `${item.score}%`}}></div>
                           </div>
                           <span className="font-bold text-gray-800">{item.score}%</span>
                         </div>
@@ -490,7 +492,7 @@ const ResumeBuilder = () => {
                 )}
 
                 {result.insights && (
-                  <div className="p-3.5 bg-blue-50/70 border border-blue-100 rounded-xl text-xs text-blue-950">
+                  <div className="p-3.5 bg-neutral-100 border border-neutral-300 rounded-xl text-xs text-neutral-900">
                     <strong>AI Insight:</strong> {result.insights}
                   </div>
                 )}
@@ -640,7 +642,7 @@ const ResumeBuilder = () => {
                   {expandedSection === 'projects' && (
                     <div className="p-4 space-y-4 bg-white">
                       <label className="block text-xs font-bold text-gray-700 mb-1">Projects Description</label>
-                      <textarea value={userDetails.projects} onChange={e => setUserDetails({...userDetails, projects: e.target.value})} className="w-full px-3 py-2 rounded-lg border border-gray-200 outline-none focus:border-darkGreen h-32 text-sm" placeholder="Project Name (Date): Description..." />
+                      <textarea value={userDetails.projects} onChange={e => setUserDetails({...userDetails, projects: e.target.value})} className="w-full px-3 py-2 rounded-lg border border-gray-200 outline-none focus:border-black h-32 text-sm" placeholder="Project Name (Date): Description..." />
                     </div>
                   )}
                 </div>
@@ -653,20 +655,37 @@ const ResumeBuilder = () => {
                   {expandedSection === 'awards' && (
                     <div className="p-4 space-y-4 bg-white">
                       <label className="block text-xs font-bold text-gray-700 mb-1">Awards List (one per line)</label>
-                      <textarea value={userDetails.awards} onChange={e => setUserDetails({...userDetails, awards: e.target.value})} className="w-full px-3 py-2 rounded-lg border border-gray-200 outline-none focus:border-darkGreen h-24 text-sm" placeholder="Award Name: Details..." />
+                      <textarea value={userDetails.awards} onChange={e => setUserDetails({...userDetails, awards: e.target.value})} className="w-full px-3 py-2 rounded-lg border border-gray-200 outline-none focus:border-black h-24 text-sm" placeholder="Award Name: Details..." />
                     </div>
                   )}
                 </div>
 
-               <button type="submit" disabled={generating} className="w-full bg-darkGreen text-white py-4 rounded-xl font-black hover:shadow-lg transition-all flex justify-center items-center gap-2 mt-4">
+               <button type="submit" disabled={generating} className="w-full bg-black text-white py-4 rounded-xl font-black hover:bg-neutral-800 hover:shadow-lg transition-all flex justify-center items-center gap-2 mt-4 cursor-pointer">
                  {generating ? <Loader2 className="animate-spin" /> : 'Generate Live Preview'}
                </button>
              </form>
              
              {generatedData && (
-               <button onClick={downloadPDF} className="mt-3 w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:shadow-lg transition-all flex justify-center items-center gap-2">
-                 <Download size={20} /> Download PDF
-               </button>
+               <div className="mt-4 space-y-2">
+                 <button onClick={downloadPDF} className="w-full bg-black hover:bg-neutral-800 text-white py-3.5 rounded-xl font-black hover:shadow-lg transition-all flex justify-center items-center gap-2 cursor-pointer">
+                   <Download size={20} /> Download PDF
+                 </button>
+                 <div className="flex items-center justify-center gap-1.5 text-xs font-semibold py-1">
+                   {userStatus.subscription === 'monthly' ? (
+                     <span className="text-black bg-neutral-100 border border-neutral-300 px-3 py-1 rounded-full font-bold">
+                       ⭐ Monthly Pro Active • Unlimited Downloads
+                     </span>
+                   ) : userStatus.credits > 0 ? (
+                     <span className="text-black bg-neutral-100 border border-neutral-300 px-3 py-1 rounded-full">
+                       🎉 Free Trial: <strong className="font-black">{userStatus.credits} free download{userStatus.credits > 1 ? 's' : ''}</strong> remaining
+                     </span>
+                   ) : (
+                     <span className="text-neutral-500 bg-neutral-100 border border-neutral-200 px-3 py-1 rounded-full">
+                       🔒 2 Free downloads used • Upgrade to unlock (₹49 Single / ₹199 Monthly)
+                     </span>
+                   )}
+                 </div>
+               </div>
              )}
            </div>
 
@@ -695,13 +714,13 @@ const ResumeBuilder = () => {
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               className="bg-white rounded-3xl w-full max-w-md p-8 shadow-2xl border border-gray-100 flex flex-col text-center"
             >
-              <div className="w-16 h-16 bg-amber-50 rounded-full flex items-center justify-center text-amber-500 mx-auto mb-6 border border-amber-100">
+              <div className="w-16 h-16 bg-neutral-100 rounded-full flex items-center justify-center text-black mx-auto mb-6 border border-neutral-200">
                 <Lock size={28} />
               </div>
 
-              <h3 className="text-2xl font-black text-gray-900 mb-2">Unlock Resume Download</h3>
+              <h3 className="text-2xl font-black text-black mb-2">Free Trial Completed</h3>
               <p className="text-gray-600 text-sm mb-6">
-                Premium templates and PDF exports are locked on the Free tier. Choose a plan to unlock now!
+                You have used your 2 free resume downloads. Choose a plan below to unlock further downloads and premium features.
               </p>
 
               <div className="space-y-3 mb-8 text-left">

@@ -194,7 +194,7 @@ const ResumeTemplate = ({ data }) => {
           {resumeData.contact?.email && (
             <span className="flex items-center gap-1.5">
               <Mail size={13} className="text-slate-800" />
-              <a href={`mailto:${resumeData.contact.email}`} className="text-blue-600 hover:underline">{resumeData.contact.email}</a>
+              <a href={`mailto:${resumeData.contact.email}`} className="text-slate-900 underline hover:text-black">{resumeData.contact.email}</a>
             </span>
           )}
           {resumeData.contact?.email && resumeData.contact?.phone && <span className="text-slate-400">|</span>}
@@ -209,14 +209,14 @@ const ResumeTemplate = ({ data }) => {
           {resumeData.contact?.github && (
             <span className="flex items-center gap-1.5">
               <GithubIcon size={13} className="text-slate-800" />
-              <a href={`https://${resumeData.contact.github}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">{resumeData.contact.github}</a>
+              <a href={`https://${resumeData.contact.github}`} target="_blank" rel="noopener noreferrer" className="text-slate-900 underline hover:text-black">{resumeData.contact.github}</a>
             </span>
           )}
           {resumeData.contact?.github && resumeData.contact?.linkedin && <span className="text-slate-400">|</span>}
           {resumeData.contact?.linkedin && (
             <span className="flex items-center gap-1.5">
               <LinkedinIcon size={13} className="text-slate-800" />
-              <a href={`https://${resumeData.contact.linkedin}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">{resumeData.contact.linkedin}</a>
+              <a href={`https://${resumeData.contact.linkedin}`} target="_blank" rel="noopener noreferrer" className="text-slate-900 underline hover:text-black">{resumeData.contact.linkedin}</a>
             </span>
           )}
         </div>

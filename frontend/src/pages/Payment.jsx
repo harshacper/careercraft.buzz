@@ -123,7 +123,7 @@ const Payment = () => {
   if (loading) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
-        <Loader2 className="w-12 h-12 animate-spin text-darkGreen" />
+        <Loader2 className="w-12 h-12 animate-spin text-black" />
       </div>
     );
   }
@@ -131,7 +131,7 @@ const Payment = () => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-16 text-gray-900">
       {/* Header */}
-      <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
+      <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-14">
         <span className="text-black bg-black/5 px-4 py-1.5 rounded-full text-xs sm:text-sm font-bold tracking-wider uppercase mb-4 inline-block">Pricing Plans</span>
         <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-black mb-6">
           Invest in Your Career with <span className="underline decoration-black decoration-4 underline-offset-4">Premium Access</span>
@@ -141,24 +141,59 @@ const Payment = () => {
         </p>
       </div>
 
+      {/* Free Trial Announcement Banner */}
+      <div className="max-w-4xl mx-auto mb-10 p-5 bg-neutral-50 border border-neutral-200 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xs">
+        <div className="flex items-center gap-3.5">
+          <div className="w-10 h-10 rounded-full bg-black text-white flex items-center justify-center shrink-0 font-black text-sm">
+            2x
+          </div>
+          <div>
+            <h4 className="font-bold text-black text-sm">First 2 Resume Downloads Are 100% FREE</h4>
+            <p className="text-xs text-neutral-600 mt-0.5">
+              Every user receives 2 free high-resolution resume downloads upon signup. Choose Single Unlock (₹49) or Monthly Pro (₹199) only after using your free trials!
+            </p>
+          </div>
+        </div>
+        <button
+          onClick={() => navigate('/resume')}
+          className="shrink-0 bg-white border-2 border-black hover:bg-black hover:text-white text-black text-xs font-bold px-4 py-2 rounded-xl transition-all cursor-pointer"
+        >
+          Open Resume Builder →
+        </button>
+      </div>
+
       {/* User Plan Status */}
       {isAuthenticated && (
-        <div className="max-w-3xl mx-auto mb-12 bg-white/70 backdrop-blur-md border border-gray-100 p-4 sm:p-6 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between shadow-sm gap-4">
+        <div className="max-w-4xl mx-auto mb-12 bg-white/70 backdrop-blur-md border border-gray-200 p-4 sm:p-6 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between shadow-sm gap-4">
           <div>
-            <h4 className="font-bold text-gray-700">Your Current Status</h4>
-            <div className="flex flex-wrap items-center gap-2 mt-1">
-              <span className={`px-3 py-1 rounded-full text-xs font-black uppercase ${userStatus.subscription === 'monthly' ? 'bg-black text-white' : 'bg-gray-100 text-gray-700'}`}>
+            <h4 className="font-bold text-gray-700 text-sm">Your Current Status</h4>
+            <div className="flex flex-wrap items-center gap-2 mt-1.5">
+              <span className={`px-3 py-1 rounded-full text-xs font-black uppercase ${userStatus.subscription === 'monthly' ? 'bg-black text-white' : 'bg-gray-100 text-gray-800'}`}>
                 {userStatus.subscription === 'monthly' ? 'Monthly Pro' : 'Free Tier'}
               </span>
-              <span className="text-sm text-gray-500 font-semibold">•</span>
-              <span className="text-xs sm:text-sm text-gray-600 font-semibold">
-                Single Resume Credits: <strong className="text-black">{userStatus.credits}</strong>
+              <span className="text-sm text-gray-400 font-semibold">•</span>
+              <span className="text-xs sm:text-sm text-gray-700 font-medium">
+                {userStatus.subscription === 'monthly' ? (
+                  <span>Downloads: <strong className="text-black font-bold">Unlimited Active</strong></span>
+                ) : userStatus.credits > 0 ? (
+                  <span>Free Downloads Remaining: <strong className="text-black font-black">{userStatus.credits}</strong></span>
+                ) : (
+                  <span className="text-neutral-500">Free Downloads: <strong className="text-black">0 left</strong> (Trials used)</span>
+                )}
               </span>
             </div>
           </div>
-          {userStatus.subscription === 'monthly' && (
+          {userStatus.subscription === 'monthly' ? (
             <div className="flex items-center gap-1.5 text-black font-bold text-sm shrink-0">
               <ShieldCheck className="w-5 h-5 text-black" /> Unlimited Downloads Active
+            </div>
+          ) : userStatus.credits > 0 ? (
+            <div className="flex items-center gap-1.5 text-emerald-800 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl font-bold text-xs shrink-0">
+              🎉 {userStatus.credits} Free Download{userStatus.credits > 1 ? 's' : ''} Ready
+            </div>
+          ) : (
+            <div className="flex items-center gap-1.5 text-neutral-700 bg-neutral-100 border border-neutral-300 px-3 py-1.5 rounded-xl font-bold text-xs shrink-0">
+              Select a plan below to unlock downloads
             </div>
           )}
         </div>
@@ -262,7 +297,7 @@ const Payment = () => {
       {/* Trust Badges */}
       <div className="mt-16 text-center max-w-lg mx-auto">
         <div className="flex justify-center items-center gap-2 text-gray-500 font-medium text-sm mb-2">
-          <ShieldCheck className="w-5 h-5 text-darkGreen" /> 100% Encrypted & Safe Mock Payments
+          <ShieldCheck className="w-5 h-5 text-black" /> 100% Encrypted & Safe Mock Payments
         </div>
         <p className="text-xs text-gray-400">
           CareerCraft does not store card numbers. Purchases are simulated using advanced client-side sandbox environments.

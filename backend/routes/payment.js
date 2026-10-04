@@ -24,23 +24,30 @@ const protect = async (req, res, next) => {
   }
 };
 
-// Helper to parse subscription status from skills column
+// Helper to parse subscription status from skills column (defaulting to 2 free trial downloads)
 const getUserPaymentState = (skillsText) => {
   // If it's already an array (e.g. from Supabase JSONB or client list)
   if (Array.isArray(skillsText)) {
     return {
       skillsList: skillsText,
       subscription: 'none',
-      credits: 0
+      credits: 2,
+      freeTrialsInitialized: true
     };
   }
 
   // If it's already an object (e.g. from Supabase JSONB)
   if (skillsText && typeof skillsText === 'object') {
+    const isInit = Boolean(skillsText.freeTrialsInitialized);
+    const credits = (skillsText.credits !== undefined && skillsText.credits !== null)
+      ? Number(skillsText.credits)
+      : (isInit ? 0 : 2);
+
     return {
       skillsList: skillsText.skillsList || [],
       subscription: skillsText.subscription || 'none',
-      credits: skillsText.credits || 0
+      credits: isNaN(credits) ? (isInit ? 0 : 2) : credits,
+      freeTrialsInitialized: true
     };
   }
 
@@ -51,13 +58,20 @@ const getUserPaymentState = (skillsText) => {
         return {
           skillsList: parsed,
           subscription: 'none',
-          credits: 0
+          credits: 2,
+          freeTrialsInitialized: true
         };
       }
+      const isInit = Boolean(parsed.freeTrialsInitialized);
+      const credits = (parsed.credits !== undefined && parsed.credits !== null)
+        ? Number(parsed.credits)
+        : (isInit ? 0 : 2);
+
       return {
         skillsList: parsed.skillsList || [],
         subscription: parsed.subscription || 'none',
-        credits: parsed.credits || 0
+        credits: isNaN(credits) ? (isInit ? 0 : 2) : credits,
+        freeTrialsInitialized: true
       };
     }
   } catch (e) {
@@ -71,7 +85,8 @@ const getUserPaymentState = (skillsText) => {
   return {
     skillsList: skillsArray,
     subscription: 'none',
-    credits: 0
+    credits: 2,
+    freeTrialsInitialized: true
   };
 };
 
@@ -91,13 +106,22 @@ router.get('/status', protect, async (req, res) => {
     }
 
     const state = getUserPaymentState(user.skills);
+
+    // If payment state was not yet initialized in the database, persist it now
+    if (!user.skills || typeof user.skills !== 'object' || !user.skills.freeTrialsInitialized) {
+      await supabase
+        .from('users')
+        .update({ skills: state })
+        .eq('id', req.user.id);
+    }
+
     res.json(state);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 });
 
-// @desc    Process mock checkout (₹50 single or ₹150 monthly)
+// @desc    Process mock checkout (₹49 single or ₹199 monthly)
 // @route   POST /api/payment/checkout
 // @access  Private
 router.post('/checkout', protect, async (req, res) => {
@@ -126,6 +150,7 @@ router.post('/checkout', protect, async (req, res) => {
     } else if (planType === 'single') {
       state.credits = (state.credits || 0) + 1;
     }
+    state.freeTrialsInitialized = true;
 
     // Save state back to Supabase
     const { error: updateError } = await supabase
@@ -166,10 +191,14 @@ router.post('/consume', protect, async (req, res) => {
     const state = getUserPaymentState(user.skills);
 
     if (state.credits <= 0) {
-      return res.status(400).json({ message: 'No download credits remaining' });
+      return res.status(400).json({ 
+        message: 'No download credits remaining. Your 2 free downloads have been used. Upgrade to unlock further downloads.',
+        credits: 0
+      });
     }
 
     state.credits = state.credits - 1;
+    state.freeTrialsInitialized = true;
 
     // Save state back to Supabase
     const { error: updateError } = await supabase
@@ -183,7 +212,9 @@ router.post('/consume', protect, async (req, res) => {
 
     res.json({
       success: true,
-      message: 'Successfully consumed 1 download credit',
+      message: state.credits > 0 
+        ? `Successfully consumed 1 credit (${state.credits} remaining)` 
+        : 'Used final free download credit. Subsequent downloads will require a plan upgrade.',
       status: state
     });
   } catch (error) {

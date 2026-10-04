@@ -81,14 +81,15 @@ const websiteKnowledge = {
   ],
 
   pricing: {
-    overview: "CareerCraft offers accessible, student-friendly pricing with both pay-as-you-go and unlimited monthly options.",
+    overview: "CareerCraft offers accessible, student-friendly pricing. Every registered user starts with their first 2 resume downloads 100% FREE. After exhausting the 2 free downloads, users can unlock single resumes for ₹49 or get Unlimited Monthly Pro for ₹199.",
     plans: [
       {
         id: "free",
         name: "Free Tier",
         price: "₹0",
-        billing: "Free forever",
+        billing: "2 Free Downloads included",
         features: [
+          "First 2 Resume PDF Downloads 100% FREE",
           "Explore 100+ tech companies directory",
           "Access basic career chat advisor",
           "Test ATS scoring preview",
