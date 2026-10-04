@@ -355,10 +355,10 @@ const AtsAnalyzer = () => {
     <div className="min-h-screen py-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
       {/* Header Banner */}
       <div className="text-center max-w-3xl mx-auto mb-10">
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-50 border border-blue-200/60 text-[#1f83c6] text-xs font-bold uppercase tracking-wider mb-4">
-          <Sparkles className="w-3.5 h-3.5" /> AI-Powered Semantic ATS Intelligence
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-black/5 border border-black/10 text-black text-xs font-bold uppercase tracking-wider mb-4">
+          <Sparkles className="w-3.5 h-3.5 text-black" /> AI-Powered Semantic ATS Intelligence
         </div>
-        <h1 className="text-3xl sm:text-5xl font-black text-[#20235b] tracking-tight">
+        <h1 className="text-3xl sm:text-5xl font-black text-black tracking-tight">
           ATS Resume Score & Optimizer
         </h1>
         <p className="mt-3 text-sm sm:text-base text-gray-600 leading-relaxed">
@@ -367,10 +367,10 @@ const AtsAnalyzer = () => {
 
         {/* Value Props */}
         <div className="mt-5 flex flex-wrap justify-center gap-4 text-xs font-semibold text-gray-600">
-          <span className="flex items-center gap-1"><ShieldCheck className="w-4 h-4 text-emerald-600" /> Semantic AI Matching</span>
-          <span className="flex items-center gap-1"><Target className="w-4 h-4 text-blue-600" /> Transparent 6-Factor Weights</span>
-          <span className="flex items-center gap-1"><FileCheck className="w-4 h-4 text-purple-600" /> Formatting Vulnerability Check</span>
-          <span className="flex items-center gap-1"><Download className="w-4 h-4 text-amber-600" /> Instant PDF Report</span>
+          <span className="flex items-center gap-1"><ShieldCheck className="w-4 h-4 text-black" /> Semantic AI Matching</span>
+          <span className="flex items-center gap-1"><Target className="w-4 h-4 text-black" /> Transparent 6-Factor Weights</span>
+          <span className="flex items-center gap-1"><FileCheck className="w-4 h-4 text-black" /> Formatting Vulnerability Check</span>
+          <span className="flex items-center gap-1"><Download className="w-4 h-4 text-black" /> Instant PDF Report</span>
         </div>
       </div>
 
@@ -381,13 +381,13 @@ const AtsAnalyzer = () => {
           <div>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-black text-gray-900 flex items-center gap-2">
-                <span className="w-7 h-7 rounded-full bg-[#1f83c6] text-white flex items-center justify-center text-xs font-black">1</span>
+                <span className="w-7 h-7 rounded-full bg-black text-white flex items-center justify-center text-xs font-black">1</span>
                 Upload Your Resume
               </h2>
               <button 
                 type="button" 
                 onClick={() => setUseTextInput(!useTextInput)} 
-                className="text-xs text-[#1f83c6] hover:underline font-bold"
+                className="text-xs text-black hover:underline font-bold"
               >
                 {useTextInput ? 'Switch to File Upload' : 'Paste Plain Text'}
               </button>
@@ -400,7 +400,7 @@ const AtsAnalyzer = () => {
                 onDrop={handleFileDrop}
                 onClick={() => fileInputRef.current?.click()}
                 className={`border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all flex flex-col items-center justify-center min-h-[220px] ${
-                  dragActive ? 'border-[#1f83c6] bg-blue-50/50' : 'border-gray-300 hover:border-[#1f83c6] hover:bg-gray-50/50'
+                  dragActive ? 'border-black bg-gray-50' : 'border-gray-300 hover:border-black hover:bg-gray-50/50'
                 }`}
               >
                 <input 
@@ -413,7 +413,7 @@ const AtsAnalyzer = () => {
                 
                 {file ? (
                   <div className="space-y-2">
-                    <div className="w-14 h-14 rounded-2xl bg-emerald-100 text-emerald-700 mx-auto flex items-center justify-center shadow-sm">
+                    <div className="w-14 h-14 rounded-2xl bg-black text-white mx-auto flex items-center justify-center shadow-sm">
                       <FileText className="w-8 h-8" />
                     </div>
                     <div className="font-bold text-sm text-gray-800 break-all">{fileName}</div>
@@ -428,7 +428,7 @@ const AtsAnalyzer = () => {
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    <div className="w-14 h-14 rounded-2xl bg-blue-50 text-[#1f83c6] mx-auto flex items-center justify-center">
+                    <div className="w-14 h-14 rounded-2xl bg-gray-100 text-black mx-auto flex items-center justify-center">
                       <UploadCloud className="w-7 h-7" />
                     </div>
                     <div className="font-bold text-sm text-gray-800">
@@ -445,7 +445,7 @@ const AtsAnalyzer = () => {
                   placeholder="Paste your resume's complete text here (Contact details, Summary, Experience, Skills, Education)..."
                   value={resumeTextPasted}
                   onChange={(e) => setResumeTextPasted(e.target.value)}
-                  className="w-full text-xs p-3.5 rounded-2xl border border-gray-200 outline-none focus:border-[#1f83c6] bg-gray-50 font-mono"
+                  className="w-full text-xs p-3.5 rounded-2xl border border-gray-200 outline-none focus:border-black bg-gray-50 font-mono"
                 />
               </div>
             )}
@@ -462,7 +462,7 @@ const AtsAnalyzer = () => {
           <div>
             <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
               <h2 className="text-lg font-black text-gray-900 flex items-center gap-2">
-                <span className="w-7 h-7 rounded-full bg-[#20235b] text-white flex items-center justify-center text-xs font-black">2</span>
+                <span className="w-7 h-7 rounded-full bg-black text-white flex items-center justify-center text-xs font-black">2</span>
                 Paste Target Job Description
               </h2>
               <span className="text-xs text-gray-500">{jobDescription.length} characters</span>
@@ -476,7 +476,7 @@ const AtsAnalyzer = () => {
                   key={idx}
                   type="button"
                   onClick={() => setJobDescription(sample.description)}
-                  className="text-[11px] font-semibold bg-gray-100 hover:bg-[#1f83c6] hover:text-white text-gray-700 px-2.5 py-1 rounded-lg transition-colors cursor-pointer"
+                  className="text-[11px] font-semibold bg-gray-100 hover:bg-black hover:text-white text-gray-700 px-2.5 py-1 rounded-lg transition-colors cursor-pointer"
                 >
                   {sample.title}
                 </button>
@@ -488,7 +488,7 @@ const AtsAnalyzer = () => {
               placeholder="Paste the complete job description here, including required skills, responsibilities, tools, and experience level..."
               value={jobDescription}
               onChange={(e) => setJobDescription(e.target.value)}
-              className="w-full text-xs p-3.5 rounded-2xl border border-gray-200 outline-none focus:border-[#1f83c6] bg-gray-50"
+              className="w-full text-xs p-3.5 rounded-2xl border border-gray-200 outline-none focus:border-black bg-gray-50"
             />
           </div>
 
@@ -500,7 +500,7 @@ const AtsAnalyzer = () => {
               type="button"
               disabled={loading || (!file && !resumeTextPasted.trim()) || !jobDescription.trim()}
               onClick={handleAnalyze}
-              className="w-full sm:w-auto bg-gradient-to-r from-[#20235b] to-[#1f83c6] text-white font-black text-sm px-8 py-3.5 rounded-2xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+              className="w-full sm:w-auto bg-black hover:bg-neutral-800 text-white font-black text-sm px-8 py-3.5 rounded-2xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
             >
               {loading ? (
                 <>
@@ -523,31 +523,31 @@ const AtsAnalyzer = () => {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            className="bg-white rounded-3xl p-8 mb-12 shadow-sm border border-blue-100 text-center max-w-xl mx-auto"
+            className="bg-white rounded-3xl p-8 mb-12 shadow-sm border border-gray-200 text-center max-w-xl mx-auto"
           >
             <div className="w-16 h-16 mx-auto mb-4 relative">
-              <div className="w-16 h-16 rounded-full border-4 border-blue-100 border-t-[#1f83c6] animate-spin" />
+              <div className="w-16 h-16 rounded-full border-4 border-gray-200 border-t-black animate-spin" />
               <div className="absolute inset-0 flex items-center justify-center">
-                <Target className="w-6 h-6 text-[#1f83c6]" />
+                <Target className="w-6 h-6 text-black" />
               </div>
             </div>
             <h3 className="text-lg font-black text-gray-900 mb-1">AI ATS Scanner in Progress</h3>
             <p className="text-xs text-gray-500 mb-6">Evaluating semantic similarity, weighting factors, and formatting rules...</p>
 
             <div className="space-y-2.5 text-left text-xs max-w-md mx-auto">
-              <div className={`flex items-center gap-2 p-2 rounded-xl ${loadingStep >= 0 ? 'bg-blue-50 text-[#1f83c6] font-bold' : 'text-gray-400'}`}>
-                {loadingStep > 0 ? <CheckCircle className="w-4 h-4 text-emerald-600" /> : <div className="w-4 h-4 rounded-full border-2 border-current animate-spin" />}
+              <div className={`flex items-center gap-2 p-2 rounded-xl ${loadingStep >= 0 ? 'bg-black text-white font-bold' : 'text-gray-400'}`}>
+                {loadingStep > 0 ? <CheckCircle className="w-4 h-4 text-emerald-400" /> : <div className="w-4 h-4 rounded-full border-2 border-current animate-spin" />}
                 1. Parsing document text & section layout
               </div>
-              <div className={`flex items-center gap-2 p-2 rounded-xl ${loadingStep >= 1 ? 'bg-blue-50 text-[#1f83c6] font-bold' : 'text-gray-400'}`}>
-                {loadingStep > 1 ? <CheckCircle className="w-4 h-4 text-emerald-600" /> : loadingStep === 1 ? <div className="w-4 h-4 rounded-full border-2 border-current animate-spin" /> : <div className="w-4 h-4 rounded-full border-2 border-gray-200" />}
+              <div className={`flex items-center gap-2 p-2 rounded-xl ${loadingStep >= 1 ? 'bg-black text-white font-bold' : 'text-gray-400'}`}>
+                {loadingStep > 1 ? <CheckCircle className="w-4 h-4 text-emerald-400" /> : loadingStep === 1 ? <div className="w-4 h-4 rounded-full border-2 border-current animate-spin" /> : <div className="w-4 h-4 rounded-full border-2 border-gray-200" />}
                 2. Extracting technical skills, tools & experience requirements
               </div>
-              <div className={`flex items-center gap-2 p-2 rounded-xl ${loadingStep >= 2 ? 'bg-blue-50 text-[#1f83c6] font-bold' : 'text-gray-400'}`}>
-                {loadingStep > 2 ? <CheckCircle className="w-4 h-4 text-emerald-600" /> : loadingStep === 2 ? <div className="w-4 h-4 rounded-full border-2 border-current animate-spin" /> : <div className="w-4 h-4 rounded-full border-2 border-gray-200" />}
+              <div className={`flex items-center gap-2 p-2 rounded-xl ${loadingStep >= 2 ? 'bg-black text-white font-bold' : 'text-gray-400'}`}>
+                {loadingStep > 2 ? <CheckCircle className="w-4 h-4 text-emerald-400" /> : loadingStep === 2 ? <div className="w-4 h-4 rounded-full border-2 border-current animate-spin" /> : <div className="w-4 h-4 rounded-full border-2 border-gray-200" />}
                 3. Calculating weighted 6-factor ATS compatibility score
               </div>
-              <div className={`flex items-center gap-2 p-2 rounded-xl ${loadingStep >= 3 ? 'bg-blue-50 text-[#1f83c6] font-bold' : 'text-gray-400'}`}>
+              <div className={`flex items-center gap-2 p-2 rounded-xl ${loadingStep >= 3 ? 'bg-black text-white font-bold' : 'text-gray-400'}`}>
                 {loadingStep >= 3 ? <div className="w-4 h-4 rounded-full border-2 border-current animate-spin" /> : <div className="w-4 h-4 rounded-full border-2 border-gray-200" />}
                 4. Checking ATS formatting readability and generating fixes
               </div>
@@ -564,7 +564,7 @@ const AtsAnalyzer = () => {
           className="space-y-8"
         >
           {/* Hero Overall Score Banner */}
-          <div className="bg-gradient-to-br from-white to-gray-50/80 rounded-3xl p-6 sm:p-10 shadow-sm border border-gray-100">
+          <div className="bg-white rounded-3xl p-6 sm:p-10 shadow-sm border border-gray-100">
             <div className="grid lg:grid-cols-12 gap-8 items-center">
               {/* Circular Meter (4 Cols) */}
               <div className="lg:col-span-4 flex flex-col items-center justify-center text-center">
@@ -592,7 +592,7 @@ const AtsAnalyzer = () => {
                     />
                   </svg>
                   <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-4xl font-black text-[#20235b] tracking-tight">
+                    <span className="text-4xl font-black text-black tracking-tight">
                       {result.overallScore}
                     </span>
                     <span className="text-xs font-bold text-gray-500 uppercase tracking-widest">
@@ -618,13 +618,13 @@ const AtsAnalyzer = () => {
                   <div className="flex gap-2">
                     <button
                       onClick={downloadPdfReport}
-                      className="bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
+                      className="bg-black text-white hover:bg-neutral-800 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-1.5 cursor-pointer"
                     >
-                      <Download className="w-3.5 h-3.5 text-[#1f83c6]" /> Download Report (.PDF)
+                      <Download className="w-3.5 h-3.5 text-white" /> Download Report (.PDF)
                     </button>
                     <Link
                       to="/resume"
-                      className="bg-[#20235b] hover:bg-[#196fa8] text-white px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-1.5"
+                      className="bg-white border-2 border-black text-black hover:bg-gray-50 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-1.5"
                     >
                       <Code className="w-3.5 h-3.5" /> Edit in Resume Builder
                     </Link>
@@ -645,7 +645,7 @@ const AtsAnalyzer = () => {
 
             {/* Disclaimer Alert */}
             <div className="mt-6 pt-4 border-t border-gray-100 flex items-start gap-2 text-[11px] text-gray-500">
-              <HelpCircle className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
+              <HelpCircle className="w-4 h-4 text-gray-400 shrink-0 mt-0.5" />
               <span>
                 <strong>Scoring Notice:</strong> {result.disclaimer || 'ESTIMATED ATS COMPATIBILITY SCORE. This estimated score is intended for guidance and resume optimization purposes; actual hiring decisions vary by employer ATS configuration and human review.'}
               </span>
@@ -654,8 +654,8 @@ const AtsAnalyzer = () => {
 
           {/* 6-Factor Weighted Breakdown Cards */}
           <div>
-            <h3 className="text-lg font-black text-[#20235b] mb-4 flex items-center gap-2">
-              <Layers className="w-5 h-5 text-[#1f83c6]" /> 6-Factor ATS Score Breakdown
+            <h3 className="text-lg font-black text-black mb-4 flex items-center gap-2">
+              <Layers className="w-5 h-5 text-black" /> 6-Factor ATS Score Breakdown
             </h3>
             
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
@@ -666,14 +666,14 @@ const AtsAnalyzer = () => {
                     <span>Keyword Match</span>
                     <span className="font-bold text-gray-400">35%</span>
                   </div>
-                  <div className="text-xl font-black text-[#20235b]">
+                  <div className="text-xl font-black text-black">
                     {result.scoreBreakdown?.keywordMatch || 0}
                     <span className="text-xs text-gray-400 font-normal"> / {result.scoreBreakdown?.keywordMatchMax || 35}</span>
                   </div>
                 </div>
                 <div className="w-full bg-gray-100 h-1.5 rounded-full mt-3 overflow-hidden">
                   <div 
-                    className="bg-[#1f83c6] h-full rounded-full transition-all duration-700"
+                    className="bg-black h-full rounded-full transition-all duration-700"
                     style={{ width: `${((result.scoreBreakdown?.keywordMatch || 0) / (result.scoreBreakdown?.keywordMatchMax || 35)) * 100}%` }}
                   />
                 </div>
@@ -686,14 +686,14 @@ const AtsAnalyzer = () => {
                     <span>Required Skills</span>
                     <span className="font-bold text-gray-400">25%</span>
                   </div>
-                  <div className="text-xl font-black text-[#20235b]">
+                  <div className="text-xl font-black text-black">
                     {result.scoreBreakdown?.requiredSkills || 0}
                     <span className="text-xs text-gray-400 font-normal"> / {result.scoreBreakdown?.requiredSkillsMax || 25}</span>
                   </div>
                 </div>
                 <div className="w-full bg-gray-100 h-1.5 rounded-full mt-3 overflow-hidden">
                   <div 
-                    className="bg-emerald-500 h-full rounded-full transition-all duration-700"
+                    className="bg-neutral-800 h-full rounded-full transition-all duration-700"
                     style={{ width: `${((result.scoreBreakdown?.requiredSkills || 0) / (result.scoreBreakdown?.requiredSkillsMax || 25)) * 100}%` }}
                   />
                 </div>
@@ -706,14 +706,14 @@ const AtsAnalyzer = () => {
                     <span>Experience Match</span>
                     <span className="font-bold text-gray-400">15%</span>
                   </div>
-                  <div className="text-xl font-black text-[#20235b]">
+                  <div className="text-xl font-black text-black">
                     {result.scoreBreakdown?.experienceRelevance || 0}
                     <span className="text-xs text-gray-400 font-normal"> / {result.scoreBreakdown?.experienceRelevanceMax || 15}</span>
                   </div>
                 </div>
                 <div className="w-full bg-gray-100 h-1.5 rounded-full mt-3 overflow-hidden">
                   <div 
-                    className="bg-purple-500 h-full rounded-full transition-all duration-700"
+                    className="bg-neutral-700 h-full rounded-full transition-all duration-700"
                     style={{ width: `${((result.scoreBreakdown?.experienceRelevance || 0) / (result.scoreBreakdown?.experienceRelevanceMax || 15)) * 100}%` }}
                   />
                 </div>
@@ -726,14 +726,14 @@ const AtsAnalyzer = () => {
                     <span>Education Match</span>
                     <span className="font-bold text-gray-400">10%</span>
                   </div>
-                  <div className="text-xl font-black text-[#20235b]">
+                  <div className="text-xl font-black text-black">
                     {result.scoreBreakdown?.educationMatch || 0}
                     <span className="text-xs text-gray-400 font-normal"> / {result.scoreBreakdown?.educationMatchMax || 10}</span>
                   </div>
                 </div>
                 <div className="w-full bg-gray-100 h-1.5 rounded-full mt-3 overflow-hidden">
                   <div 
-                    className="bg-amber-500 h-full rounded-full transition-all duration-700"
+                    className="bg-neutral-600 h-full rounded-full transition-all duration-700"
                     style={{ width: `${((result.scoreBreakdown?.educationMatch || 0) / (result.scoreBreakdown?.educationMatchMax || 10)) * 100}%` }}
                   />
                 </div>
@@ -746,14 +746,14 @@ const AtsAnalyzer = () => {
                     <span>ATS Formatting</span>
                     <span className="font-bold text-gray-400">10%</span>
                   </div>
-                  <div className="text-xl font-black text-[#20235b]">
+                  <div className="text-xl font-black text-black">
                     {result.scoreBreakdown?.formattingReadability || 0}
                     <span className="text-xs text-gray-400 font-normal"> / {result.scoreBreakdown?.formattingReadabilityMax || 10}</span>
                   </div>
                 </div>
                 <div className="w-full bg-gray-100 h-1.5 rounded-full mt-3 overflow-hidden">
                   <div 
-                    className="bg-teal-500 h-full rounded-full transition-all duration-700"
+                    className="bg-neutral-500 h-full rounded-full transition-all duration-700"
                     style={{ width: `${((result.scoreBreakdown?.formattingReadability || 0) / (result.scoreBreakdown?.formattingReadabilityMax || 10)) * 100}%` }}
                   />
                 </div>
@@ -766,14 +766,14 @@ const AtsAnalyzer = () => {
                     <span>Contact Info</span>
                     <span className="font-bold text-gray-400">5%</span>
                   </div>
-                  <div className="text-xl font-black text-[#20235b]">
+                  <div className="text-xl font-black text-black">
                     {result.scoreBreakdown?.contactCompleteness || 0}
                     <span className="text-xs text-gray-400 font-normal"> / {result.scoreBreakdown?.contactCompletenessMax || 5}</span>
                   </div>
                 </div>
                 <div className="w-full bg-gray-100 h-1.5 rounded-full mt-3 overflow-hidden">
                   <div 
-                    className="bg-blue-600 h-full rounded-full transition-all duration-700"
+                    className="bg-black h-full rounded-full transition-all duration-700"
                     style={{ width: `${((result.scoreBreakdown?.contactCompleteness || 0) / (result.scoreBreakdown?.contactCompletenessMax || 5)) * 100}%` }}
                   />
                 </div>
@@ -784,8 +784,8 @@ const AtsAnalyzer = () => {
           {/* Section: Keyword Analysis */}
           <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-gray-100">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
-              <h3 className="text-lg font-black text-[#20235b] flex items-center gap-2">
-                <Target className="w-5 h-5 text-[#1f83c6]" /> Semantic Keyword Analysis
+              <h3 className="text-lg font-black text-black flex items-center gap-2">
+                <Target className="w-5 h-5 text-black" /> Semantic Keyword Analysis
               </h3>
               <div className="text-xs text-amber-700 bg-amber-50 border border-amber-200/60 px-3 py-1 rounded-xl">
                 ⚠️ <strong>Honest Match:</strong> Only include missing keywords that reflect your genuine capabilities.
@@ -863,8 +863,8 @@ const AtsAnalyzer = () => {
 
           {/* Section: 3-Tier Skill Analysis */}
           <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-gray-100">
-            <h3 className="text-lg font-black text-[#20235b] mb-4 flex items-center gap-2">
-              <Zap className="w-5 h-5 text-amber-500" /> 3-Tier Skill Categorization
+            <h3 className="text-lg font-black text-black mb-4 flex items-center gap-2">
+              <Zap className="w-5 h-5 text-black" /> 3-Tier Skill Categorization
             </h3>
 
             <div className="grid md:grid-cols-3 gap-6">
@@ -900,13 +900,13 @@ const AtsAnalyzer = () => {
 
               {/* Recommended Skills */}
               <div className="p-5 rounded-2xl bg-gray-50 border border-gray-200/60">
-                <div className="font-bold text-xs uppercase text-[#1f83c6] tracking-wider mb-2 flex items-center gap-1.5">
-                  <Sparkles className="w-4 h-4" /> Recommended to Highlight
+                <div className="font-bold text-xs uppercase text-black tracking-wider mb-2 flex items-center gap-1.5">
+                  <Sparkles className="w-4 h-4 text-black" /> Recommended to Highlight
                 </div>
                 <p className="text-[11px] text-gray-500 mb-3">Skills you appear to have, but could articulate with stronger emphasis.</p>
                 <div className="flex flex-wrap gap-1.5">
                   {(result.skillsAnalysis?.recommendedSkills || []).map((sk, i) => (
-                    <span key={i} className="px-2.5 py-1 rounded-md text-xs font-bold bg-blue-100/70 text-blue-900">
+                    <span key={i} className="px-2.5 py-1 rounded-md text-xs font-bold bg-gray-200 text-gray-900 border border-gray-300">
                       {sk}
                     </span>
                   ))}
@@ -917,8 +917,8 @@ const AtsAnalyzer = () => {
 
           {/* Section: Resume Section-by-Section Evaluations */}
           <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-gray-100">
-            <h3 className="text-lg font-black text-[#20235b] mb-4 flex items-center gap-2">
-              <FileCheck className="w-5 h-5 text-purple-600" /> Resume Section-by-Section Score
+            <h3 className="text-lg font-black text-black mb-4 flex items-center gap-2">
+              <FileCheck className="w-5 h-5 text-black" /> Resume Section-by-Section Score
             </h3>
 
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -950,8 +950,8 @@ const AtsAnalyzer = () => {
           <div className="grid md:grid-cols-2 gap-8">
             {/* ATS Formatting Checks */}
             <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-gray-100">
-              <h3 className="text-lg font-black text-[#20235b] mb-4 flex items-center gap-2">
-                <ShieldCheck className="w-5 h-5 text-teal-600" /> ATS Readability & Formatting
+              <h3 className="text-lg font-black text-black mb-4 flex items-center gap-2">
+                <ShieldCheck className="w-5 h-5 text-black" /> ATS Readability & Formatting
               </h3>
               
               <div className="space-y-2.5">
@@ -973,16 +973,16 @@ const AtsAnalyzer = () => {
             {/* Experience & Project Relevance */}
             <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-gray-100 flex flex-col justify-between">
               <div>
-                <h3 className="text-lg font-black text-[#20235b] mb-4 flex items-center gap-2">
-                  <Briefcase className="w-5 h-5 text-indigo-600" /> Experience & Project Relevance
+                <h3 className="text-lg font-black text-black mb-4 flex items-center gap-2">
+                  <Briefcase className="w-5 h-5 text-black" /> Experience & Project Relevance
                 </h3>
 
                 {/* Experience Match Box */}
                 {result.experienceMatch && (
-                  <div className="p-4 rounded-2xl bg-indigo-50/50 border border-indigo-100 mb-4 text-xs space-y-1.5">
-                    <div className="flex items-center justify-between font-bold text-indigo-950">
+                  <div className="p-4 rounded-2xl bg-gray-50 border border-gray-200 mb-4 text-xs space-y-1.5">
+                    <div className="flex items-center justify-between font-bold text-gray-900">
                       <span>Experience Alignment:</span>
-                      <span className="text-sm font-black text-indigo-700">{result.experienceMatch.matchPercentage}%</span>
+                      <span className="text-sm font-black text-black">{result.experienceMatch.matchPercentage}%</span>
                     </div>
                     <div className="text-gray-600"><strong>Required:</strong> {result.experienceMatch.requiredExperience}</div>
                     <div className="text-gray-600"><strong>Resume:</strong> {result.experienceMatch.candidateExperience}</div>
@@ -1015,7 +1015,7 @@ const AtsAnalyzer = () => {
                 <button
                   type="button"
                   onClick={downloadPdfReport}
-                  className="inline-flex items-center gap-1.5 text-xs font-bold text-[#1f83c6] hover:underline cursor-pointer"
+                  className="inline-flex items-center gap-1.5 text-xs font-bold text-black hover:underline cursor-pointer"
                 >
                   <Download className="w-3.5 h-3.5" /> Save full report as PDF
                 </button>
@@ -1024,39 +1024,39 @@ const AtsAnalyzer = () => {
           </div>
 
           {/* Actionable Improvement Checklist */}
-          <div className="bg-gradient-to-r from-blue-900 to-[#20235b] rounded-3xl p-6 sm:p-8 shadow-md text-white">
+          <div className="bg-black text-white rounded-3xl p-6 sm:p-8 shadow-xl">
             <h3 className="text-lg font-black mb-2 flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-amber-400" /> Actionable Recommendations to Boost Your ATS Pass Rate
+              <Sparkles className="w-5 h-5 text-white" /> Actionable Recommendations to Boost Your ATS Pass Rate
             </h3>
-            <p className="text-xs text-blue-200 mb-6">
+            <p className="text-xs text-gray-400 mb-6">
               Implement these changes directly in your resume before submitting to this position.
             </p>
 
             <div className="space-y-3">
               {(result.improvementSuggestions || []).map((sug, idx) => (
                 <div key={idx} className="flex items-start gap-3 p-3.5 rounded-xl bg-white/10 backdrop-blur-xs border border-white/10 text-xs leading-relaxed">
-                  <div className="w-5 h-5 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">
+                  <div className="w-5 h-5 rounded-full bg-white text-black flex items-center justify-center font-bold text-[10px] shrink-0 mt-0.5">
                     {idx + 1}
                   </div>
-                  <div>{sug}</div>
+                  <div className="text-gray-200">{sug}</div>
                 </div>
               ))}
             </div>
 
             <div className="mt-8 pt-4 border-t border-white/10 flex flex-wrap items-center justify-between gap-4">
-              <span className="text-xs text-blue-200">
+              <span className="text-xs text-gray-300">
                 Ready to apply these improvements? Open the AI Resume Builder to tailor your sections.
               </span>
               <div className="flex gap-2">
                 <button
                   onClick={() => { setResult(null); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-                  className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all"
+                  className="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer"
                 >
                   Analyze Another JD
                 </button>
                 <Link
                   to="/resume"
-                  className="bg-[#1f83c6] hover:bg-[#196fa8] text-white px-5 py-2 rounded-xl text-xs font-bold transition-all shadow-md flex items-center gap-1.5"
+                  className="bg-white hover:bg-gray-100 text-black px-5 py-2 rounded-xl text-xs font-black transition-all shadow-md flex items-center gap-1.5"
                 >
                   Open Resume Builder <ArrowRight className="w-3.5 h-3.5" />
                 </Link>

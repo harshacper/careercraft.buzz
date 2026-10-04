@@ -132,9 +132,9 @@ const Payment = () => {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-16 text-gray-900">
       {/* Header */}
       <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
-        <span className="text-darkGreen bg-green-50 px-4 py-1.5 rounded-full text-xs sm:text-sm font-bold tracking-wider uppercase mb-4 inline-block">Pricing Plans</span>
-        <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-gray-900 mb-6">
-          Invest in Your Career with <span className="bg-gradient-to-r from-darkGreen to-[#1f83c6] bg-clip-text text-transparent">Premium Access</span>
+        <span className="text-black bg-black/5 px-4 py-1.5 rounded-full text-xs sm:text-sm font-bold tracking-wider uppercase mb-4 inline-block">Pricing Plans</span>
+        <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-black mb-6">
+          Invest in Your Career with <span className="underline decoration-black decoration-4 underline-offset-4">Premium Access</span>
         </h1>
         <p className="text-base sm:text-lg text-gray-600">
           Unlock unlimited resume designs, dynamic ATS feedback, and cover letter analysis tailored to top product & service companies.
@@ -147,18 +147,18 @@ const Payment = () => {
           <div>
             <h4 className="font-bold text-gray-700">Your Current Status</h4>
             <div className="flex flex-wrap items-center gap-2 mt-1">
-              <span className={`px-3 py-1 rounded-full text-xs font-black uppercase ${userStatus.subscription === 'monthly' ? 'bg-amber-100 text-amber-800 border border-amber-200' : 'bg-gray-100 text-gray-700'}`}>
+              <span className={`px-3 py-1 rounded-full text-xs font-black uppercase ${userStatus.subscription === 'monthly' ? 'bg-black text-white' : 'bg-gray-100 text-gray-700'}`}>
                 {userStatus.subscription === 'monthly' ? 'Monthly Pro' : 'Free Tier'}
               </span>
               <span className="text-sm text-gray-500 font-semibold">•</span>
               <span className="text-xs sm:text-sm text-gray-600 font-semibold">
-                Single Resume Credits: <strong className="text-darkGreen">{userStatus.credits}</strong>
+                Single Resume Credits: <strong className="text-black">{userStatus.credits}</strong>
               </span>
             </div>
           </div>
           {userStatus.subscription === 'monthly' && (
-            <div className="flex items-center gap-1.5 text-emerald-600 font-bold text-sm shrink-0">
-              <ShieldCheck className="w-5 h-5" /> Unlimited Downloads Active
+            <div className="flex items-center gap-1.5 text-black font-bold text-sm shrink-0">
+              <ShieldCheck className="w-5 h-5 text-black" /> Unlimited Downloads Active
             </div>
           )}
         </div>
@@ -166,82 +166,93 @@ const Payment = () => {
 
       {/* Pricing Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-        {/* Tier 1: Single Download */}
-        <div className="p-8 bg-white border-2 border-gray-100 rounded-3xl flex flex-col justify-between hover:shadow-xl transition-all duration-300 relative group overflow-hidden shadow-sm">
-          <div className="absolute top-0 right-0 w-24 h-24 bg-gray-50 rounded-bl-full -z-10 group-hover:scale-110 transition-transform"></div>
+        {/* Tier 1: Single Download (Normal) */}
+        <div className="p-8 bg-white border-2 border-gray-200 hover:border-black rounded-3xl flex flex-col justify-between hover:shadow-xl transition-all duration-300 relative group overflow-hidden shadow-sm">
           <div>
-            <h3 className="text-2xl font-black text-black">Single Resume Unlock</h3>
-            <p className="text-sm text-gray-500 mt-1">Best for one-time job applications</p>
+            <div className="flex items-center justify-between mb-1">
+              <h3 className="text-2xl font-black text-black">Single Resume Unlock</h3>
+              <span className="text-xs font-black bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full">SAVE 67%</span>
+            </div>
+            <p className="text-sm text-gray-500">Best for urgent, one-time job applications</p>
             
-            <div className="my-8 flex items-baseline gap-1">
-              <span className="text-5xl font-black text-black">₹50</span>
+            <div className="my-8 flex items-baseline gap-2">
+              <span className="text-2xl text-gray-400 font-bold line-through">₹149</span>
+              <span className="text-5xl font-black text-black">₹49</span>
               <span className="text-gray-500 font-medium text-sm">/ resume download</span>
             </div>
 
             <ul className="space-y-4 text-sm text-gray-700 mb-8 border-t border-gray-100 pt-6">
               <li className="flex items-center gap-3">
-                <div className="bg-gray-100 p-1 rounded-full"><Check size={14} className="text-black font-bold" /></div>
+                <div className="bg-black text-white p-1 rounded-full"><Check size={14} className="font-bold" /></div>
                 <span className="font-medium">Unlock download of 1 resume draft</span>
               </li>
               <li className="flex items-center gap-3">
-                <div className="bg-gray-100 p-1 rounded-full"><Check size={14} className="text-black font-bold" /></div>
-                <span className="font-medium">High-resolution PDF export</span>
+                <div className="bg-black text-white p-1 rounded-full"><Check size={14} className="font-bold" /></div>
+                <span className="font-medium">High-resolution PDF & DOCX export</span>
               </li>
               <li className="flex items-center gap-3">
-                <div className="bg-gray-100 p-1 rounded-full"><Check size={14} className="text-black font-bold" /></div>
-                <span className="font-medium">All resume templates included</span>
+                <div className="bg-black text-white p-1 rounded-full"><Check size={14} className="font-bold" /></div>
+                <span className="font-medium">All modern resume templates included</span>
+              </li>
+              <li className="flex items-center gap-3">
+                <div className="bg-black text-white p-1 rounded-full"><Check size={14} className="font-bold" /></div>
+                <span className="font-medium">Full ATS compatibility check & breakdown</span>
               </li>
               <li className="flex items-center gap-3 text-gray-400">
-                <div className="bg-gray-50 p-1 rounded-full"><Check size={14} className="text-gray-300" /></div>
-                <span className="font-medium">No monthly recurrences</span>
+                <div className="bg-gray-100 p-1 rounded-full"><Check size={14} className="text-gray-400" /></div>
+                <span className="font-medium">No recurring charges or subscriptions</span>
               </li>
             </ul>
           </div>
 
           <button 
             onClick={() => handleOpenCheckout('single')}
-            className="w-full bg-white text-black border-2 border-black py-3.5 rounded-xl font-bold hover:bg-black hover:text-white hover:shadow-md transition-all duration-300"
+            className="w-full bg-white text-black border-2 border-black py-3.5 rounded-xl font-bold hover:bg-black hover:text-white hover:shadow-md transition-all duration-300 cursor-pointer"
           >
             Choose Single Unlock
           </button>
         </div>
 
-        {/* Tier 2: Monthly Pro */}
-        <div className="p-8 bg-white border-2 border-gray-100 rounded-3xl flex flex-col justify-between hover:shadow-xl transition-all duration-300 relative group overflow-hidden shadow-sm">
-          <div className="absolute top-0 right-0 bg-black text-white px-4 py-1.5 rounded-bl-xl text-xs font-black tracking-widest uppercase border-l border-b border-gray-100">Popular</div>
-          <div className="absolute -bottom-20 -left-20 w-48 h-48 bg-blue-50/50 rounded-full blur-2xl"></div>
+        {/* Tier 2: Monthly Pro (Popular) */}
+        <div className="p-8 bg-black text-white border-2 border-black rounded-3xl flex flex-col justify-between hover:shadow-2xl transition-all duration-300 relative group overflow-hidden shadow-xl">
+          <div className="absolute top-0 right-0 bg-white text-black px-4 py-1.5 rounded-bl-xl text-xs font-black tracking-widest uppercase">Popular • Save 67%</div>
           <div>
-            <h3 className="text-2xl font-black text-black">Monthly Unlimited</h3>
-            <p className="text-sm text-gray-500 mt-1">Best for active job hunters</p>
+            <h3 className="text-2xl font-black text-white">Monthly Unlimited</h3>
+            <p className="text-sm text-gray-400 mt-1">Best value for active job hunters (~₹6.6/day)</p>
             
-            <div className="my-8 flex items-baseline gap-1">
-              <span className="text-5xl font-black text-black">₹150</span>
-              <span className="text-gray-500 font-medium text-sm">/ month</span>
+            <div className="my-8 flex items-baseline gap-2">
+              <span className="text-2xl text-gray-500 font-bold line-through">₹599</span>
+              <span className="text-5xl font-black text-white">₹199</span>
+              <span className="text-gray-400 font-medium text-sm">/ month</span>
             </div>
 
-            <ul className="space-y-4 text-sm text-gray-700 mb-8 border-t border-gray-100 pt-6">
+            <ul className="space-y-4 text-sm text-gray-200 mb-8 border-t border-white/10 pt-6">
               <li className="flex items-center gap-3">
-                <div className="bg-emerald-100 p-1 rounded-full"><Check size={14} className="text-emerald-600 font-bold" /></div>
+                <div className="bg-white text-black p-1 rounded-full"><Check size={14} className="font-bold" /></div>
                 <span className="font-medium">Unlimited downloads & revisions</span>
               </li>
               <li className="flex items-center gap-3">
-                <div className="bg-emerald-100 p-1 rounded-full"><Check size={14} className="text-emerald-600 font-bold" /></div>
-                <span className="font-medium">Unlimited AI Resume builder & suggests</span>
+                <div className="bg-white text-black p-1 rounded-full"><Check size={14} className="font-bold" /></div>
+                <span className="font-medium">Unlimited AI Resume generation & bullet polish</span>
               </li>
               <li className="flex items-center gap-3">
-                <div className="bg-emerald-100 p-1 rounded-full"><Check size={14} className="text-emerald-600 font-bold" /></div>
-                <span className="font-medium">Full ATS Analyzer & scoring breakdowns</span>
+                <div className="bg-white text-black p-1 rounded-full"><Check size={14} className="font-bold" /></div>
+                <span className="font-medium">Comprehensive 6-factor ATS Score & PDF report</span>
               </li>
               <li className="flex items-center gap-3">
-                <div className="bg-emerald-100 p-1 rounded-full"><Check size={14} className="text-emerald-600 font-bold" /></div>
-                <span className="font-medium">Priority AI chatbot answers</span>
+                <div className="bg-white text-black p-1 rounded-full"><Check size={14} className="font-bold" /></div>
+                <span className="font-medium">360° Skill Gap matching against any Job Description</span>
+              </li>
+              <li className="flex items-center gap-3">
+                <div className="bg-white text-black p-1 rounded-full"><Check size={14} className="font-bold" /></div>
+                <span className="font-medium">Direct company tailoring (100+ firms) & AI chat</span>
               </li>
             </ul>
           </div>
 
           <button 
             onClick={() => handleOpenCheckout('monthly')}
-            className="w-full bg-black text-white py-3.5 rounded-xl font-black hover:bg-zinc-800 shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2"
+            className="w-full bg-white text-black py-3.5 rounded-xl font-black hover:bg-gray-100 shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer"
           >
             <Sparkles size={18} /> Go Pro Unlimited
           </button>
@@ -287,15 +298,15 @@ const Payment = () => {
               {step === 1 && (
                 <div className="p-6">
                   {/* Cart Summary */}
-                  <div className="bg-green-50/50 border border-green-100 rounded-2xl p-4 mb-6 flex justify-between items-center">
+                  <div className="bg-gray-50 border border-gray-200 rounded-2xl p-4 mb-6 flex justify-between items-center">
                     <div>
-                      <span className="text-xs font-bold text-darkGreen uppercase tracking-wider">Product Selection</span>
-                      <h4 className="font-black text-gray-800 mt-0.5">
+                      <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Product Selection</span>
+                      <h4 className="font-black text-gray-900 mt-0.5">
                         {selectedPlan === 'single' ? 'Single Resume Download' : 'Monthly Premium Subscription'}
                       </h4>
                     </div>
-                    <span className="text-xl font-black text-darkGreen">
-                      {selectedPlan === 'single' ? '₹50' : '₹150'}
+                    <span className="text-xl font-black text-black">
+                      {selectedPlan === 'single' ? '₹49' : '₹199'}
                     </span>
                   </div>
 
@@ -305,7 +316,7 @@ const Payment = () => {
                     <button 
                       type="button"
                       onClick={() => setPaymentMethod('upi')}
-                      className={`py-3.5 px-2 rounded-xl border flex flex-col items-center gap-1.5 font-bold transition-all ${paymentMethod === 'upi' ? 'border-darkGreen bg-green-50 text-darkGreen' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}`}
+                      className={`py-3.5 px-2 rounded-xl border flex flex-col items-center gap-1.5 font-bold transition-all cursor-pointer ${paymentMethod === 'upi' ? 'border-black bg-black text-white' : 'border-gray-200 text-gray-700 hover:bg-gray-50'}`}
                     >
                       <QrCode size={18} />
                       <span className="text-[11px]">UPI</span>
@@ -313,7 +324,7 @@ const Payment = () => {
                     <button 
                       type="button"
                       onClick={() => setPaymentMethod('card')}
-                      className={`py-3.5 px-2 rounded-xl border flex flex-col items-center gap-1.5 font-bold transition-all ${paymentMethod === 'card' ? 'border-darkGreen bg-green-50 text-darkGreen' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}`}
+                      className={`py-3.5 px-2 rounded-xl border flex flex-col items-center gap-1.5 font-bold transition-all cursor-pointer ${paymentMethod === 'card' ? 'border-black bg-black text-white' : 'border-gray-200 text-gray-700 hover:bg-gray-50'}`}
                     >
                       <CreditCard size={18} />
                       <span className="text-[11px]">Card</span>
@@ -321,7 +332,7 @@ const Payment = () => {
                     <button 
                       type="button"
                       onClick={() => setPaymentMethod('netbanking')}
-                      className={`py-3.5 px-2 rounded-xl border flex flex-col items-center gap-1.5 font-bold transition-all ${paymentMethod === 'netbanking' ? 'border-darkGreen bg-green-50 text-darkGreen' : 'border-gray-200 text-gray-500 hover:bg-gray-50'}`}
+                      className={`py-3.5 px-2 rounded-xl border flex flex-col items-center gap-1.5 font-bold transition-all cursor-pointer ${paymentMethod === 'netbanking' ? 'border-black bg-black text-white' : 'border-gray-200 text-gray-700 hover:bg-gray-50'}`}
                     >
                       <Building size={18} />
                       <span className="text-[11px]">Netbanking</span>
@@ -425,7 +436,7 @@ const Payment = () => {
                     {/* Pay Button */}
                     <button 
                       type="submit"
-                      className="w-full bg-darkGreen text-white py-3.5 rounded-xl font-black hover:shadow-lg hover:shadow-green-100 transition-all duration-300 mt-6 flex justify-center items-center gap-2"
+                      className="w-full bg-black hover:bg-neutral-800 text-white py-3.5 rounded-xl font-black transition-all duration-300 mt-6 flex justify-center items-center gap-2 cursor-pointer shadow-md"
                     >
                       Process Secure Payment
                     </button>
@@ -437,26 +448,26 @@ const Payment = () => {
               {step === 2 && (
                 <div className="p-6 space-y-4">
                   <div className="text-center">
-                    <span className="text-darkGreen bg-green-50 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">UPI Collect Request Sent</span>
+                    <span className="text-black bg-black/5 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">UPI Collect Request Sent</span>
                     <h4 className="font-black text-gray-800 mt-2">Complete Your Payment</h4>
                     <p className="text-xs text-gray-500 mt-1">
-                      A mock collect request has been sent to <strong className="text-darkGreen">{upiId}</strong>. Please check your UPI App to pay.
+                      A mock collect request has been sent to <strong className="text-black">{upiId}</strong>. Please check your UPI App to pay.
                     </p>
                   </div>
 
                   {/* QR Code fallback */}
                   <div className="flex flex-col items-center p-4 bg-gray-50 border border-gray-100 rounded-2xl">
-                    <span className="text-[10px] text-gray-400 mb-2 font-semibold uppercase tracking-wider">Or scan QR to pay: ₹{selectedPlan === 'single' ? '50' : '150'}</span>
+                    <span className="text-[10px] text-gray-400 mb-2 font-semibold uppercase tracking-wider">Or scan QR to pay: ₹{selectedPlan === 'single' ? '49' : '199'}</span>
                     <div className="w-40 h-40 bg-white p-2 border border-gray-200 rounded-xl relative flex items-center justify-center shadow-inner overflow-hidden">
                       <img 
                         src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(
-                          `upi://pay?pa=9380268436-a19a@ybl&pn=CareerSteps&am=${selectedPlan === 'single' ? '50' : '150'}&cu=INR`
+                          `upi://pay?pa=9380268436-a19a@ybl&pn=CareerSteps&am=${selectedPlan === 'single' ? '49' : '199'}&cu=INR`
                         )}`} 
                         alt="Scan to Pay" 
                         className="w-full h-full object-contain"
                       />
                     </div>
-                    <span className="text-[10px] text-darkGreen font-bold mt-2">UPI ID: 9380268436-a19a@ybl</span>
+                    <span className="text-[10px] text-black font-bold mt-2">UPI ID: 9380268436-a19a@ybl</span>
                   </div>
 
                   <form onSubmit={handleUpiSubmit} className="space-y-4">
@@ -471,7 +482,7 @@ const Payment = () => {
                         value={utr}
                         onChange={(e) => setUtr(e.target.value.replace(/\D/g, ''))}
                         placeholder="e.g. 123456789012"
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 outline-none focus:border-darkGreen text-sm text-center font-mono tracking-widest"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 outline-none focus:border-black text-sm text-center font-mono tracking-widest"
                       />
                       <p className="text-[10px] text-gray-400 mt-1 text-center">Open your transaction details in your UPI App to find the 12-digit Ref No. / UTR.</p>
                     </div>
@@ -480,13 +491,13 @@ const Payment = () => {
                       <button 
                         type="button"
                         onClick={() => setStep(1)}
-                        className="w-1/3 border border-gray-200 text-gray-500 py-3.5 rounded-xl font-bold hover:bg-gray-50 transition-all duration-300 text-sm"
+                        className="w-1/3 border border-gray-200 text-gray-700 py-3.5 rounded-xl font-bold hover:bg-gray-50 transition-all duration-300 text-sm cursor-pointer"
                       >
                         Back
                       </button>
                       <button 
                         type="submit"
-                        className="w-2/3 bg-darkGreen text-white py-3.5 rounded-xl font-black hover:shadow-lg hover:shadow-green-100 transition-all duration-300 text-sm"
+                        className="w-2/3 bg-black hover:bg-neutral-800 text-white py-3.5 rounded-xl font-black transition-all duration-300 text-sm cursor-pointer shadow-md"
                       >
                         Confirm & Verify
                       </button>
@@ -499,12 +510,12 @@ const Payment = () => {
               {step === 3 && (
                 <div className="p-12 flex flex-col items-center justify-center text-center">
                   <div className="relative mb-6">
-                    <Loader2 className="w-16 h-16 animate-spin text-darkGreen" />
-                    <ShieldCheck className="w-6 h-6 text-blue-500 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+                    <Loader2 className="w-16 h-16 animate-spin text-black" />
+                    <ShieldCheck className="w-6 h-6 text-black absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
                   </div>
                   <h4 className="text-lg font-black text-gray-800">Processing Your Payment</h4>
                   <p className="text-sm text-gray-500 mt-2 max-w-[250px]">
-                    Verifying mock authorization credentials with banking systems. Please do not close this window.
+                    Verifying authorization credentials with banking systems. Please do not close this window.
                   </p>
                 </div>
               )}
@@ -520,9 +531,9 @@ const Payment = () => {
                     <Check size={32} strokeWidth={3} />
                   </motion.div>
                   
-                  <h4 className="text-xl font-black text-emerald-600">Payment Successful!</h4>
+                  <h4 className="text-xl font-black text-gray-900">Payment Successful!</h4>
                   <p className="text-sm text-gray-600 mt-2">
-                    Mock transactions succeeded! Your features have been unlocked.
+                    Transactions succeeded! Your premium features have been unlocked.
                   </p>
 
                   <div className="bg-gray-50 border border-gray-100 p-4 rounded-2xl w-full my-6 text-left space-y-2 text-xs">
@@ -532,11 +543,11 @@ const Payment = () => {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-400">Amount Paid:</span>
-                      <span className="font-bold text-gray-700">{selectedPlan === 'single' ? '₹50.00' : '₹150.00'}</span>
+                      <span className="font-bold text-gray-900">{selectedPlan === 'single' ? '₹49.00' : '₹199.00'}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-400">Payment Status:</span>
-                      <span className="font-bold text-emerald-600 uppercase tracking-widest text-[9px] bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">CONFIRMED</span>
+                      <span className="font-bold text-emerald-700 uppercase tracking-widest text-[9px] bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">CONFIRMED</span>
                     </div>
                   </div>
 
@@ -547,7 +558,7 @@ const Payment = () => {
                       // Force reload status & redirect to builder or dashboard
                       navigate('/resume');
                     }}
-                    className="w-full bg-[#1f83c6] text-white py-3.5 rounded-xl font-black hover:shadow-lg transition-all duration-300"
+                    className="w-full bg-black hover:bg-neutral-800 text-white py-3.5 rounded-xl font-black transition-all duration-300 cursor-pointer shadow-md"
                   >
                     Go to Resume Builder
                   </button>

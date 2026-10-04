@@ -98,25 +98,31 @@ const websiteKnowledge = {
       {
         id: "single",
         name: "Single Resume Unlock",
-        price: "₹50",
+        price: "₹49",
+        originalPrice: "₹149",
+        discount: "67% OFF",
         billing: "One-time payment per download",
         features: [
           "Unlock download of 1 resume draft",
-          "High-resolution PDF export",
+          "High-resolution PDF & DOCX export",
           "All resume templates and font options included",
+          "Full ATS compatibility check & breakdown",
           "No monthly recurring charges"
         ]
       },
       {
         id: "monthly",
         name: "Monthly Unlimited Pro",
-        price: "₹150",
-        billing: "Billed monthly",
+        price: "₹199",
+        originalPrice: "₹599",
+        discount: "67% OFF",
+        billing: "Billed monthly (~₹6.6/day)",
         popular: true,
         features: [
           "Unlimited resume downloads & revisions",
           "Unlimited AI Resume builder & suggestions",
           "Full ATS Analyzer & scoring breakdowns",
+          "360° Skill Gap matching against any Job Description",
           "Priority AI career chatbot answers",
           "Pro Member badge on dashboard"
         ]

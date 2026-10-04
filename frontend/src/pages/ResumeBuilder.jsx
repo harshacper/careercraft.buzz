@@ -414,7 +414,7 @@ const ResumeBuilder = () => {
         <div className="flex flex-wrap justify-center gap-3 mt-8 bg-gray-200 p-1.5 rounded-2xl">
           <button onClick={()=>setActiveTab('analyzer')} className={`px-6 py-2.5 rounded-xl font-bold transition-all ${activeTab==='analyzer' ? 'bg-white shadow-xl text-darkGreen' : 'text-gray-600'}`}>Quick Check</button>
           <button onClick={()=>setActiveTab('builder')} className={`px-6 py-2.5 rounded-xl font-bold transition-all ${activeTab==='builder' ? 'bg-white shadow-xl text-darkGreen' : 'text-gray-600'}`}>AI Builder</button>
-          <button onClick={()=>navigate('/ats-analyzer')} className="px-6 py-2.5 rounded-xl font-bold transition-all bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md hover:shadow-lg flex items-center gap-1.5">
+          <button onClick={()=>navigate('/ats-analyzer')} className="px-6 py-2.5 rounded-xl font-bold transition-all bg-black hover:bg-neutral-800 text-white shadow-md hover:shadow-lg flex items-center gap-1.5">
             <Sparkles className="w-4 h-4" /> Comprehensive ATS Score
           </button>
         </div>
@@ -422,15 +422,15 @@ const ResumeBuilder = () => {
 
       {activeTab === 'analyzer' ? (
         <div className="space-y-6">
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 p-5 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-4 shadow-sm">
+          <div className="bg-gray-50 border border-gray-200 p-5 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-4 shadow-sm">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center font-black text-sm shrink-0">ATS</div>
+              <div className="w-10 h-10 rounded-xl bg-black text-white flex items-center justify-center font-black text-sm shrink-0">ATS</div>
               <div>
                 <h3 className="font-bold text-gray-900 text-base">Targeting a specific Job Description?</h3>
                 <p className="text-xs text-gray-600">Get an in-depth 6-factor ATS score (0-100), semantic keyword match, formatting vulnerability scan, and 1-click PDF report.</p>
               </div>
             </div>
-            <button onClick={() => navigate('/ats-analyzer')} className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-5 py-2.5 rounded-xl text-sm whitespace-nowrap shadow transition-all flex items-center gap-2 shrink-0">
+            <button onClick={() => navigate('/ats-analyzer')} className="bg-black hover:bg-neutral-800 text-white font-bold px-5 py-2.5 rounded-xl text-sm whitespace-nowrap shadow transition-all flex items-center gap-2 shrink-0">
               Launch Full ATS Scanner <ArrowRight className="w-4 h-4" />
             </button>
           </div>
@@ -707,24 +707,36 @@ const ResumeBuilder = () => {
               <div className="space-y-3 mb-8 text-left">
                 <div 
                   onClick={() => { setIsUnlockModalOpen(false); navigate('/payment'); }}
-                  className="p-4 border border-gray-100 bg-gray-50/50 hover:bg-green-50/50 hover:border-darkGreen rounded-2xl cursor-pointer flex justify-between items-center transition-all group"
+                  className="p-4 border border-gray-200 bg-gray-50/50 hover:bg-black/5 hover:border-black rounded-2xl cursor-pointer flex justify-between items-center transition-all group"
                 >
                   <div>
-                    <h4 className="font-bold text-gray-800 text-sm group-hover:text-darkGreen transition-colors">Single Resume Unlock</h4>
-                    <p className="text-xs text-gray-400 mt-0.5">Unlock this resume draft immediately</p>
+                    <div className="flex items-center gap-2">
+                      <h4 className="font-bold text-gray-900 text-sm group-hover:text-black transition-colors">Single Resume Unlock</h4>
+                      <span className="text-[10px] font-black bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded">SAVE 67%</span>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-0.5">Unlock this resume draft immediately</p>
                   </div>
-                  <span className="font-black text-darkGreen text-base">₹50</span>
+                  <div className="text-right">
+                    <span className="text-xs text-gray-400 line-through mr-1.5">₹149</span>
+                    <span className="font-black text-black text-base">₹49</span>
+                  </div>
                 </div>
 
                 <div 
                   onClick={() => { setIsUnlockModalOpen(false); navigate('/payment'); }}
-                  className="p-4 border border-gray-100 bg-gray-50/50 hover:bg-green-50/50 hover:border-darkGreen rounded-2xl cursor-pointer flex justify-between items-center transition-all group"
+                  className="p-4 border-2 border-black bg-white hover:bg-gray-50 rounded-2xl cursor-pointer flex justify-between items-center transition-all group shadow-sm"
                 >
                   <div>
-                    <h4 className="font-bold text-gray-800 text-sm group-hover:text-darkGreen transition-colors">Monthly Unlimited Pro</h4>
-                    <p className="text-xs text-gray-400 mt-0.5">Unlimited PDF downloads & AI features</p>
+                    <div className="flex items-center gap-2">
+                      <h4 className="font-bold text-gray-900 text-sm transition-colors">Monthly Unlimited Pro</h4>
+                      <span className="text-[10px] font-black bg-black text-white px-1.5 py-0.5 rounded">POPULAR</span>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-0.5">Unlimited PDF downloads & all AI features</p>
                   </div>
-                  <span className="font-black text-darkGreen text-base">₹150</span>
+                  <div className="text-right">
+                    <span className="text-xs text-gray-400 line-through mr-1.5">₹599</span>
+                    <span className="font-black text-black text-base">₹199</span>
+                  </div>
                 </div>
               </div>
 
@@ -737,7 +749,7 @@ const ResumeBuilder = () => {
                 </button>
                 <button 
                   onClick={() => { setIsUnlockModalOpen(false); navigate('/payment'); }}
-                  className="flex-1 bg-darkGreen hover:bg-opacity-95 text-white py-3.5 rounded-xl font-bold hover:shadow-lg transition-all text-sm flex items-center justify-center gap-1.5"
+                  className="flex-1 bg-black hover:bg-neutral-800 text-white py-3.5 rounded-xl font-bold hover:shadow-lg transition-all text-sm flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   Go to Pricing <ArrowRight size={16} />
                 </button>

@@ -139,7 +139,7 @@ router.post('/checkout', protect, async (req, res) => {
 
     res.json({
       success: true,
-      message: `Successfully processed payment for ${planType === 'single' ? 'Single Resume (₹50)' : 'Monthly Premium (₹150)'}`,
+      message: `Successfully processed payment for ${planType === 'single' ? 'Single Resume (₹49)' : 'Monthly Premium (₹199)'}`,
       status: state
     });
   } catch (error) {

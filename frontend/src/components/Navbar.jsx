@@ -32,11 +32,11 @@ const Navbar = () => {
       
       {/* Desktop Links */}
       <div className="hidden md:flex space-x-6 text-black font-medium">
-        <Link to="/companies" className="hover:text-[#1f83c6] flex items-center gap-1 transition-colors"><Building2 className="w-4 h-4"/> Companies</Link>
-        <Link to="/resume" className="hover:text-[#1f83c6] flex items-center gap-1 transition-colors"><FileText className="w-4 h-4"/> Resume</Link>
-        <Link to="/ats-analyzer" className="hover:text-[#1f83c6] flex items-center gap-1 transition-colors font-semibold text-[#1f83c6]"><Target className="w-4 h-4"/> ATS Score</Link>
-        <Link to="/chat" className="hover:text-[#1f83c6] flex items-center gap-1 transition-colors"><MessageSquare className="w-4 h-4"/> AI Chat</Link>
-        <Link to="/payment" className="hover:text-[#1f83c6] flex items-center gap-1 transition-colors"><CreditCard className="w-4 h-4"/> Pricing</Link>
+        <Link to="/companies" className="hover:text-neutral-600 flex items-center gap-1 transition-colors"><Building2 className="w-4 h-4"/> Companies</Link>
+        <Link to="/resume" className="hover:text-neutral-600 flex items-center gap-1 transition-colors"><FileText className="w-4 h-4"/> Resume</Link>
+        <Link to="/ats-analyzer" className="hover:text-neutral-600 flex items-center gap-1 transition-colors font-medium text-black"><Target className="w-4 h-4"/> ATS Score</Link>
+        <Link to="/chat" className="hover:text-neutral-600 flex items-center gap-1 transition-colors"><MessageSquare className="w-4 h-4"/> AI Chat</Link>
+        <Link to="/payment" className="hover:text-neutral-600 flex items-center gap-1 transition-colors"><CreditCard className="w-4 h-4"/> Pricing</Link>
       </div>
 
       {/* Desktop CTA actions */}
@@ -57,11 +57,11 @@ const Navbar = () => {
       {/* Mobile Dropdown Panel */}
       {isOpen && (
         <div className="md:hidden absolute top-full left-0 right-0 mt-2 mx-0 p-6 glassmorphism flex flex-col space-y-4 z-50 shadow-2xl animate-in fade-in slide-in-from-top-5 duration-200">
-          <Link to="/companies" onClick={() => setIsOpen(false)} className="hover:text-[#1f83c6] flex items-center gap-2 py-2.5 font-bold border-b border-black/5"><Building2 className="w-5 h-5 text-gray-500"/> Companies</Link>
-          <Link to="/resume" onClick={() => setIsOpen(false)} className="hover:text-[#1f83c6] flex items-center gap-2 py-2.5 font-bold border-b border-black/5"><FileText className="w-5 h-5 text-gray-500"/> Resume</Link>
-          <Link to="/ats-analyzer" onClick={() => setIsOpen(false)} className="hover:text-[#1f83c6] flex items-center gap-2 py-2.5 font-bold border-b border-black/5 text-[#1f83c6]"><Target className="w-5 h-5 text-[#1f83c6]"/> ATS Score</Link>
-          <Link to="/chat" onClick={() => setIsOpen(false)} className="hover:text-[#1f83c6] flex items-center gap-2 py-2.5 font-bold border-b border-black/5"><MessageSquare className="w-5 h-5 text-gray-500"/> AI Chat</Link>
-          <Link to="/payment" onClick={() => setIsOpen(false)} className="hover:text-[#1f83c6] flex items-center gap-2 py-2.5 font-bold border-b border-black/5"><CreditCard className="w-5 h-5 text-gray-500"/> Pricing</Link>
+          <Link to="/companies" onClick={() => setIsOpen(false)} className="hover:text-black flex items-center gap-2 py-2.5 font-bold border-b border-black/5"><Building2 className="w-5 h-5 text-gray-500"/> Companies</Link>
+          <Link to="/resume" onClick={() => setIsOpen(false)} className="hover:text-black flex items-center gap-2 py-2.5 font-bold border-b border-black/5"><FileText className="w-5 h-5 text-gray-500"/> Resume</Link>
+          <Link to="/ats-analyzer" onClick={() => setIsOpen(false)} className="hover:text-black flex items-center gap-2 py-2.5 font-bold border-b border-black/5 text-black"><Target className="w-5 h-5 text-gray-500"/> ATS Score</Link>
+          <Link to="/chat" onClick={() => setIsOpen(false)} className="hover:text-black flex items-center gap-2 py-2.5 font-bold border-b border-black/5"><MessageSquare className="w-5 h-5 text-gray-500"/> AI Chat</Link>
+          <Link to="/payment" onClick={() => setIsOpen(false)} className="hover:text-black flex items-center gap-2 py-2.5 font-bold border-b border-black/5"><CreditCard className="w-5 h-5 text-gray-500"/> Pricing</Link>
           
           <div className="flex flex-col gap-3 pt-4">
             <Link to="/login" onClick={() => setIsOpen(false)} className="w-full text-center py-3 border border-black/15 rounded-2xl font-bold text-black hover:bg-black/5 transition-colors">Login</Link>
