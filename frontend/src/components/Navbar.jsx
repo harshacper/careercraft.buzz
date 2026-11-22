@@ -35,6 +35,7 @@ const Navbar = () => {
         <Link to="/companies" className="hover:text-neutral-600 flex items-center gap-1 transition-colors"><Building2 className="w-4 h-4"/> Companies</Link>
         <Link to="/resume" className="hover:text-neutral-600 flex items-center gap-1 transition-colors"><FileText className="w-4 h-4"/> Resume</Link>
         <Link to="/ats-analyzer" className="hover:text-neutral-600 flex items-center gap-1 transition-colors font-medium text-black"><Target className="w-4 h-4"/> ATS Score</Link>
+        <Link to="/learning-agent" className="hover:text-neutral-600 flex items-center gap-1 transition-colors"><BookOpen className="w-4 h-4"/> AI Learning</Link>
         <Link to="/chat" className="hover:text-neutral-600 flex items-center gap-1 transition-colors"><MessageSquare className="w-4 h-4"/> AI Chat</Link>
         <Link to="/payment" className="hover:text-neutral-600 flex items-center gap-1 transition-colors"><CreditCard className="w-4 h-4"/> Pricing</Link>
       </div>
@@ -60,6 +61,7 @@ const Navbar = () => {
           <Link to="/companies" onClick={() => setIsOpen(false)} className="hover:text-black flex items-center gap-2 py-2.5 font-bold border-b border-black/5"><Building2 className="w-5 h-5 text-gray-500"/> Companies</Link>
           <Link to="/resume" onClick={() => setIsOpen(false)} className="hover:text-black flex items-center gap-2 py-2.5 font-bold border-b border-black/5"><FileText className="w-5 h-5 text-gray-500"/> Resume</Link>
           <Link to="/ats-analyzer" onClick={() => setIsOpen(false)} className="hover:text-black flex items-center gap-2 py-2.5 font-bold border-b border-black/5 text-black"><Target className="w-5 h-5 text-gray-500"/> ATS Score</Link>
+          <Link to="/learning-agent" onClick={() => setIsOpen(false)} className="hover:text-black flex items-center gap-2 py-2.5 font-bold border-b border-black/5"><BookOpen className="w-5 h-5 text-gray-500"/> AI Learning</Link>
           <Link to="/chat" onClick={() => setIsOpen(false)} className="hover:text-black flex items-center gap-2 py-2.5 font-bold border-b border-black/5"><MessageSquare className="w-5 h-5 text-gray-500"/> AI Chat</Link>
           <Link to="/payment" onClick={() => setIsOpen(false)} className="hover:text-black flex items-center gap-2 py-2.5 font-bold border-b border-black/5"><CreditCard className="w-5 h-5 text-gray-500"/> Pricing</Link>
           

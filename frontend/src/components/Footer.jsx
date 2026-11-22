@@ -23,6 +23,7 @@ const Footer = () => {
           <ul className="space-y-4 text-gray-400 font-medium">
             <li><Link to="/companies" className="hover:text-white transition-colors">Explore Companies</Link></li>
             <li><Link to="/ats-analyzer" className="hover:text-white transition-colors">ATS Resume Score</Link></li>
+            <li><Link to="/learning-agent" className="hover:text-white transition-colors">AI Learning & Assessment</Link></li>
             <li><Link to="/skill-gap" className="hover:text-white transition-colors">Skill Gap Analysis</Link></li>
             <li><Link to="/resume" className="hover:text-white transition-colors">Resume Builder</Link></li>
             <li><Link to="/chat" className="hover:text-white transition-colors">AI Career Coach</Link></li>

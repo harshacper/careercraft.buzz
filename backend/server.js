@@ -20,6 +20,7 @@ const paymentRoutes = require('./routes/payment');
 const aiRoutes = require('./routes/aiChat');
 const appointmentRoutes = require('./routes/appointments');
 const atsRoutes = require('./routes/atsScore');
+const assessmentRoutes = require('./routes/assessment');
 const { initAppointmentDb } = require('./models/appointmentModels');
 
 const app = express();
@@ -70,6 +71,9 @@ app.use('/appointments', appointmentRoutes);
 app.use('/api/ats', atsRoutes);
 app.use('/ats', atsRoutes);
 
+app.use('/api/assessment', assessmentRoutes);
+app.use('/assessment', assessmentRoutes);
+
 const SITEMAP_XML = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -89,9 +93,21 @@ const SITEMAP_XML = `<?xml version="1.0" encoding="UTF-8"?>
   </url>
   <url>
     <loc>https://careercraft.buzz/ats-score</loc>
-    <lastmod>2026-10-13</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://careercraft.buzz/learning-agent</loc>
+    <lastmod>2026-11-22</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.95</priority>
+  </url>
+  <url>
+    <loc>https://careercraft.buzz/assessment</loc>
+    <lastmod>2026-11-22</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.95</priority>
   </url>
   <url>
     <loc>https://careercraft.buzz/resume</loc>

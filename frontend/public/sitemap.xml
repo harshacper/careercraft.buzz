@@ -14,15 +14,29 @@
   <!-- ATS Resume Analyzer & Compatibility Score -->
   <url>
     <loc>https://careercraft.buzz/ats-analyzer</loc>
-    <lastmod>2026-10-13</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
     <loc>https://careercraft.buzz/ats-score</loc>
-    <lastmod>2026-10-13</lastmod>
+    <lastmod>2026-11-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
+  </url>
+
+  <!-- AI Learning & Assessment Agent -->
+  <url>
+    <loc>https://careercraft.buzz/learning-agent</loc>
+    <lastmod>2026-11-22</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.95</priority>
+  </url>
+  <url>
+    <loc>https://careercraft.buzz/assessment</loc>
+    <lastmod>2026-11-22</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.95</priority>
   </url>
 
   <!-- AI Resume Intelligence & Builder -->
