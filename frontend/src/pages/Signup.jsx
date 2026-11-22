@@ -22,6 +22,7 @@ const Signup = () => {
       setError("Passwords do not match!");
       return;
     }
+    setError('');
     try {
       const { confirmPassword, ...signupData } = formData;
       signupData.email = signupData.email.toLowerCase().trim();
@@ -30,26 +31,9 @@ const Signup = () => {
       safeStorage.setItem('user', JSON.stringify(res.data));
       navigate('/dashboard');
     } catch (err) {
-      if (
-        err.response?.status === 405 || 
-        err.response?.status === 500 || 
-        err.message?.includes('500') || 
-        err.message?.includes('405') || 
-        !err.response
-      ) {
-        const fallbackUser = {
-          _id: `user_${Date.now()}`,
-          fullName: formData.fullName || 'CareerCraft Member',
-          email: formData.email.toLowerCase().trim(),
-          role: formData.experience || 'Aspiring Professional',
-          token: `token_${Date.now()}`
-        };
-        safeStorage.setItem('token', fallbackUser.token);
-        safeStorage.setItem('user', JSON.stringify(fallbackUser));
-        navigate('/dashboard');
-        return;
-      }
-      setError(err.response?.data?.message || err.message || 'Signup failed');
+      console.error('Signup error:', err);
+      const serverMsg = err.response?.data?.message || err.message || 'Signup failed. Please try again.';
+      setError(serverMsg);
     }
   };
 

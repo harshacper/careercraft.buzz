@@ -81,25 +81,50 @@ router.post('/signup', async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Create user in Supabase
-    const { data: user, error } = await supabase
+    const userDisplayName = fullName || 'CareerCraft Member';
+
+    // Create user in Supabase with both name and full_name to satisfy all schema variations
+    const userPayload = { 
+      name: userDisplayName,
+      full_name: userDisplayName, 
+      email: normalizedEmail, 
+      phone_number: phoneNumber || 'N/A', 
+      password: hashedPassword, 
+      gender: gender || 'other', 
+      qualification: qualification || 'N/A', 
+      experience: experience || 'Aspiring Professional',
+      skills: { skillsList: [], subscription: 'none', credits: 2, freeTrialsInitialized: true },
+      last_ip: cleanIp
+    };
+
+    let { data: user, error } = await supabase
       .from('users')
-      .insert([
-        { 
-          full_name: fullName || 'CareerCraft Member', 
-          email: normalizedEmail, 
-          phone_number: phoneNumber || 'N/A', 
-          password: hashedPassword, 
-          gender: gender || 'other', 
-          qualification: qualification || 'N/A', 
-          experience: experience || 'Aspiring Professional',
-          last_ip: cleanIp
-        }
-      ])
+      .insert([userPayload])
       .select()
       .single();
 
-    if (error) throw error;
+    // Fallback if specific extended columns are missing in database
+    if (error && (error.message?.includes('column') || error.code === '42703')) {
+      console.warn('Retrying user insert with minimal schema fields due to:', error.message);
+      const minimalPayload = {
+        name: userDisplayName,
+        email: normalizedEmail,
+        password: hashedPassword
+      };
+      const retryResult = await supabase
+        .from('users')
+        .insert([minimalPayload])
+        .select()
+        .single();
+      
+      user = retryResult.data;
+      error = retryResult.error;
+    }
+
+    if (error) {
+      console.error('Supabase user creation error:', error);
+      throw error;
+    }
 
     // Log login attempt safely
     try {
@@ -181,7 +206,7 @@ router.post('/login', async (req, res) => {
 
       return res.json({ 
         _id: user.id, 
-        fullName: user.full_name, 
+        fullName: user.full_name || user.name || 'CareerCraft Member', 
         email: user.email, 
         role: user.experience || 'Aspiring Professional',
         token: generateToken(user.id) 
@@ -217,22 +242,40 @@ router.post('/google-login', async (req, res) => {
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash('google-auth-mock-bypass-' + Math.random(), salt);
       
-      const { data: newUser, error: insertError } = await supabase
+      const googleDisplayName = fullName || normalizedEmail.split('@')[0];
+      const googlePayload = { 
+        name: googleDisplayName,
+        full_name: googleDisplayName, 
+        email: normalizedEmail, 
+        phone_number: 'N/A', 
+        password: hashedPassword, 
+        gender: 'other', 
+        qualification: 'N/A', 
+        experience: 'Google Authorized User',
+        skills: { skillsList: [], subscription: 'none', credits: 2, freeTrialsInitialized: true },
+        last_ip: cleanIp
+      };
+
+      let { data: newUser, error: insertError } = await supabase
         .from('users')
-        .insert([
-          { 
-            full_name: fullName || normalizedEmail.split('@')[0], 
-            email: normalizedEmail, 
-            phone_number: 'N/A', 
-            password: hashedPassword, 
-            gender: 'other', 
-            qualification: 'N/A', 
-            experience: 'Google Authorized User',
-            last_ip: cleanIp
-          }
-        ])
+        .insert([googlePayload])
         .select()
         .single();
+
+      if (insertError && (insertError.message?.includes('column') || insertError.code === '42703')) {
+        const minimalGoogle = {
+          name: googleDisplayName,
+          email: normalizedEmail,
+          password: hashedPassword
+        };
+        const retryGoogle = await supabase
+          .from('users')
+          .insert([minimalGoogle])
+          .select()
+          .single();
+        newUser = retryGoogle.data;
+        insertError = retryGoogle.error;
+      }
 
       if (insertError) throw insertError;
       user = newUser;

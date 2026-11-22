@@ -170,9 +170,38 @@ app.get(['/robots.txt', '/api/robots.txt'], (req, res) => {
   res.send(ROBOTS_TXT);
 });
 
-app.get(['/api/health', '/health', '/api', '/'], (req, res) => {
+const fs = require('fs');
+
+app.get(['/api/health', '/health', '/api'], (req, res) => {
   res.json({ status: 'ok', message: 'AI Career Navigator API is running...' });
 });
+
+// Serve frontend static build if present
+const distPath = path.resolve(__dirname, '../frontend/dist');
+if (fs.existsSync(distPath)) {
+  app.use(express.static(distPath));
+  app.use((req, res, next) => {
+    if (
+      req.method === 'GET' &&
+      !req.url.startsWith('/api') && 
+      !req.url.startsWith('/auth') && 
+      !req.url.startsWith('/chat') && 
+      !req.url.startsWith('/assessment') && 
+      !req.url.startsWith('/ats') && 
+      !req.url.startsWith('/appointments') &&
+      !req.url.startsWith('/payment') &&
+      !req.url.startsWith('/admin') &&
+      !req.url.startsWith('/skill-gap')
+    ) {
+      return res.sendFile(path.join(distPath, 'index.html'));
+    }
+    next();
+  });
+} else {
+  app.get('/', (req, res) => {
+    res.json({ status: 'ok', message: 'AI Career Navigator API is running...' });
+  });
+}
 
 // Express error handling middleware
 app.use((err, req, res, next) => {
