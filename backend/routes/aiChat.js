@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const aiProvider = require('../services/aiProvider');
 const { executeTool } = require('../services/aiTools');
-const { ConversationSession } = require('../models/appointmentModels');
+const supabase = require('../config/supabase');
 const jwt = require('jsonwebtoken');
 
 // Simple In-memory IP rate limiter to prevent API abuse
@@ -62,22 +62,29 @@ router.post('/chat', rateLimiter, async (req, res) => {
 
     const sessionUser = req.body.user || extractSessionUser(req);
 
-    // If sessionId provided, persist/update session memory
+    // If sessionId provided, persist/update session memory in Supabase
     if (sessionId) {
       try {
-        const [session] = await ConversationSession.findOrCreate({
-          where: { sessionId },
-          defaults: {
-            sessionId,
-            contextData: { history: [], lastActivity: new Date() }
-          }
-        });
+        const { data: session } = await supabase
+          .from('conversation_sessions')
+          .select('*')
+          .eq('session_id', sessionId)
+          .maybeSingle();
 
-        const currentCtx = session.contextData || {};
-        currentCtx.lastMessage = message;
-        currentCtx.lastActivity = new Date();
-        session.contextData = currentCtx;
-        await session.save();
+        if (!session) {
+          await supabase.from('conversation_sessions').insert([{
+            session_id: sessionId,
+            context_data: { history: [], lastActivity: new Date(), lastMessage: message }
+          }]);
+        } else {
+          const currentCtx = session.context_data || {};
+          currentCtx.lastMessage = message;
+          currentCtx.lastActivity = new Date();
+          await supabase.from('conversation_sessions').update({
+            context_data: currentCtx,
+            last_activity: new Date().toISOString()
+          }).eq('id', session.id);
+        }
       } catch (err) {
         // Non-fatal error for session persistence
       }

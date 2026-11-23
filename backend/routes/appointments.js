@@ -54,13 +54,7 @@ const requireAdmin = (req, res, next) => {
 router.get('/calendar/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { Appointment, Customer, Service } = require('../models/appointmentModels');
-    const appt = await Appointment.findByPk(id, {
-      include: [
-        { model: Customer, as: 'customer' },
-        { model: Service, as: 'service' }
-      ]
-    });
+    const appt = await appointmentService.getAppointmentById(id);
 
     if (!appt) {
       return res.status(404).json({ error: 'Appointment not found' });
@@ -70,7 +64,7 @@ router.get('/calendar/:id', async (req, res) => {
     const protocol = req.protocol === 'https' || req.headers['x-forwarded-proto'] === 'https' ? 'https' : 'http';
     const baseUrl = `${protocol}://${host}`;
 
-    const calendarData = calendarService.getCalendarBundle(appt.toJSON(), baseUrl);
+    const calendarData = calendarService.getCalendarBundle(appt, baseUrl);
     res.json({ success: true, calendar: calendarData });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -81,23 +75,16 @@ router.get('/calendar/:id', async (req, res) => {
 router.get(['/ics/:id', '/calendar/:id/ics'], async (req, res) => {
   try {
     const { id } = req.params;
-    const { Appointment, Customer, Service } = require('../models/appointmentModels');
-    const appt = await Appointment.findByPk(id, {
-      include: [
-        { model: Customer, as: 'customer' },
-        { model: Service, as: 'service' }
-      ]
-    });
+    const appt = await appointmentService.getAppointmentById(id);
 
     if (!appt) {
       return res.status(404).send('Appointment not found');
     }
 
-    const apptData = appt.toJSON();
     const icsString = calendarService.generateIcsFile({
-      id: apptData.id,
-      title: `CareerCraft Consultation: ${apptData.service?.name || 'Career Strategy'}`,
-      description: `CareerCraft 1-on-1 Consultation Session.\nCustomer: ${apptData.customer?.name}\nStatus: ${apptData.status}\nBooking Reference: #${(apptData.id || '').slice(0, 8)}`,
+      id: appt.id,
+      title: `CareerCraft Consultation: ${appt.service?.name || 'Career Strategy'}`,
+      description: `CareerCraft 1-on-1 Consultation Session.\nCustomer: ${appt.customer?.name}\nStatus: ${appt.status}\nBooking Reference: #${(appt.id || '').slice(0, 8)}`,
       date: apptData.appointmentDate,
       startTime: apptData.startTime,
       endTime: apptData.endTime,
@@ -275,23 +262,24 @@ router.patch('/:id', async (req, res) => {
     }
 
     // Direct status or note update by admin
-    const { Appointment, Customer, Service } = require('../models/appointmentModels');
-    const appt = await Appointment.findByPk(id, {
-      include: [
-        { model: Customer, as: 'customer' },
-        { model: Service, as: 'service' }
-      ]
-    });
+    const supabase = require('../config/supabase');
+    const updates = {};
+    if (status) updates.status = status;
+    if (notes !== undefined) updates.notes = notes;
+    updates.updated_at = new Date().toISOString();
 
-    if (!appt) {
+    const { data: updatedAppt, error } = await supabase
+      .from('appointments')
+      .update(updates)
+      .eq('id', id)
+      .select('*, customer:customers(*), service:services(*)')
+      .maybeSingle();
+
+    if (error || !updatedAppt) {
       return res.status(404).json({ error: 'Appointment not found.' });
     }
 
-    if (status) appt.status = status;
-    if (notes !== undefined) appt.notes = notes;
-    await appt.save();
-
-    res.json({ success: true, appointment: appt.toJSON() });
+    res.json({ success: true, appointment: updatedAppt });
   } catch (err) {
     res.status(400).json({ error: err.message });
   }

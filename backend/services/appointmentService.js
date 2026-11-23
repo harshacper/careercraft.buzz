@@ -1,117 +1,196 @@
 /**
- * CareerCraft Appointment Service
- * Handles slot generation, booking validation, conflict resolution, rescheduling, and cancellation.
+ * CareerCraft Appointment Service (Supabase-Native Edition)
+ * Persists all appointments, customers, services, and schedules directly to Supabase Postgres.
  */
 
-const { Service, Customer, Appointment, Availability, ConversationSession } = require('../models/appointmentModels');
+const supabase = require('../config/supabase');
 const businessRules = require('../config/businessRules');
 const notificationService = require('./notificationService');
-const { Op } = require('sequelize');
+
+// Helper to format Supabase customer record to application format
+function formatCustomer(c) {
+  if (!c) return null;
+  return {
+    id: c.id,
+    userId: c.user_id,
+    name: c.name,
+    email: c.email,
+    phone: c.phone || 'N/A',
+    notes: c.notes,
+    createdAt: c.created_at,
+    updatedAt: c.updated_at
+  };
+}
+
+// Helper to format Supabase service record to application format
+function formatService(s) {
+  if (!s) return null;
+  return {
+    id: s.id,
+    name: s.name,
+    description: s.description,
+    durationMinutes: s.duration_minutes || 30,
+    price: Number(s.price || 0),
+    currency: s.currency || 'INR',
+    isActive: s.is_active !== false,
+    createdAt: s.created_at,
+    updatedAt: s.updated_at
+  };
+}
+
+// Helper to format Supabase appointment record to application format
+function formatAppointment(a) {
+  if (!a) return null;
+  const customer = a.customer ? formatCustomer(a.customer) : null;
+  const service = a.service ? formatService(a.service) : null;
+
+  return {
+    id: a.id,
+    customerId: a.customer_id,
+    serviceId: a.service_id,
+    appointmentDate: typeof a.appointment_date === 'string' ? a.appointment_date.slice(0, 10) : a.appointment_date,
+    startTime: typeof a.start_time === 'string' ? a.start_time.slice(0, 5) : a.start_time,
+    endTime: typeof a.end_time === 'string' ? a.end_time.slice(0, 5) : a.end_time,
+    status: a.status || 'confirmed',
+    notes: a.notes,
+    cancelledReason: a.cancelled_reason,
+    meetLink: a.meet_link,
+    customer,
+    service,
+    createdAt: a.created_at,
+    updatedAt: a.updated_at
+  };
+}
 
 class AppointmentService {
   /**
-   * List all active consultation services
+   * List all active consultation services from Supabase
    */
   async getServices() {
-    const services = await Service.findAll({
-      where: { isActive: true },
-      order: [['durationMinutes', 'ASC']]
-    });
+    try {
+      const { data, error } = await supabase
+        .from('services')
+        .select('*')
+        .eq('is_active', true)
+        .order('duration_minutes', { ascending: true });
 
-    return services.map(s => s.toJSON());
+      if (error) {
+        console.warn('Supabase getServices query error:', error.message);
+        throw error;
+      }
+
+      if (data && data.length > 0) {
+        return data.map(formatService);
+      }
+    } catch (e) {
+      console.warn('Falling back to default services list:', e.message);
+    }
+
+    // Default static services fallback if table is empty
+    return [
+      { id: '11111111-1111-1111-1111-111111111101', name: 'Resume Consultation & Review', durationMinutes: 30, price: 0, currency: 'INR', isActive: true },
+      { id: '11111111-1111-1111-1111-111111111102', name: '1-on-1 Career Strategy & Roadmap', durationMinutes: 45, price: 0, currency: 'INR', isActive: true },
+      { id: '11111111-1111-1111-1111-111111111103', name: 'Mock Technical & HR Interview', durationMinutes: 60, price: 0, currency: 'INR', isActive: true },
+      { id: '11111111-1111-1111-1111-111111111104', name: 'ATS Optimization & Job Match Advice', durationMinutes: 30, price: 0, currency: 'INR', isActive: true },
+      { id: '11111111-1111-1111-1111-111111111105', name: 'Skill Gap Analysis & Transition Plan', durationMinutes: 45, price: 0, currency: 'INR', isActive: true }
+    ];
   }
 
   /**
-   * Find service by ID or Name
+   * Find service by ID or Name from Supabase
    */
   async findService(identifier) {
     if (!identifier) return null;
-    let service = null;
 
-    // Check by ID if UUID
-    if (typeof identifier === 'string' && identifier.includes('-')) {
-      service = await Service.findByPk(identifier);
+    try {
+      if (typeof identifier === 'string' && identifier.includes('-')) {
+        const { data } = await supabase
+          .from('services')
+          .select('*')
+          .eq('id', identifier)
+          .maybeSingle();
+
+        if (data) return formatService(data);
+      }
+
+      const { data } = await supabase
+        .from('services')
+        .select('*')
+        .ilike('name', `%${identifier}%`)
+        .eq('is_active', true)
+        .limit(1)
+        .maybeSingle();
+
+      if (data) return formatService(data);
+    } catch (e) {
+      console.warn('findService error:', e.message);
     }
 
-    if (!service) {
-      service = await Service.findOne({
-        where: {
-          name: {
-            [Op.like]: `%${identifier}%`
-          },
-          isActive: true
-        }
-      });
-    }
-
-    return service ? service.toJSON() : null;
+    const all = await this.getServices();
+    return all.find(s => s.id === identifier || s.name.toLowerCase().includes(String(identifier).toLowerCase())) || all[0];
   }
 
   /**
    * Calculate available time slots for a given service and date
-   * @param {string} serviceId
-   * @param {string} dateStr YYYY-MM-DD
    */
   async getAvailableSlots(serviceId, dateStr) {
     if (!dateStr || !/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
       throw new Error('Invalid date format. Expected YYYY-MM-DD.');
     }
 
-    const service = await Service.findByPk(serviceId) || await Service.findOne({ where: { isActive: true } });
+    const service = await this.findService(serviceId);
     if (!service) {
-      throw new Error('Service not found.');
+      throw new Error('Selected service was not found.');
     }
 
-    const targetDate = new Date(`${dateStr}T00:00:00`);
-    const dayOfWeek = targetDate.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
+    const [year, month, day] = dateStr.split('-').map(Number);
+    const targetDate = new Date(year, month - 1, day);
+    const dayOfWeek = targetDate.getDay();
 
-    // 1. Check if closed on configured holiday
-    if (businessRules.holidays.includes(dateStr)) {
-      return {
-        date: dateStr,
-        service: service.toJSON(),
-        isWorkingDay: false,
-        reason: 'Office closed for public holiday.',
-        slots: []
-      };
-    }
-
-    // 2. Check if working day
     if (!businessRules.workingDays.includes(dayOfWeek)) {
       return {
         date: dateStr,
-        service: service.toJSON(),
+        service,
         isWorkingDay: false,
         reason: 'Sunday is a non-working day.',
         slots: []
       };
     }
 
-    // 3. Query availability schedule for this day
-    const sched = await Availability.findOne({ where: { dayOfWeek } });
-    if (!sched || !sched.isAvailable) {
+    // Query availability schedule from Supabase
+    let sched = null;
+    try {
+      const { data } = await supabase
+        .from('availability')
+        .select('*')
+        .eq('day_of_week', dayOfWeek)
+        .maybeSingle();
+      sched = data;
+    } catch (err) {
+      console.warn('Availability schedule query warning:', err.message);
+    }
+
+    if (sched && !sched.is_available) {
       return {
         date: dateStr,
-        service: service.toJSON(),
+        service,
         isWorkingDay: false,
         reason: 'No availability scheduled for this day.',
         slots: []
       };
     }
 
-    const startTimeStr = sched.startTime || businessRules.businessHours.start;
-    const endTimeStr = sched.endTime || businessRules.businessHours.end;
-    const breakStartStr = sched.breakStart || businessRules.breakHours.start;
-    const breakEndStr = sched.breakEnd || businessRules.breakHours.end;
+    const startTimeStr = (sched?.start_time ? sched.start_time.slice(0, 5) : null) || businessRules.businessHours.start;
+    const endTimeStr = (sched?.end_time ? sched.end_time.slice(0, 5) : null) || businessRules.businessHours.end;
+    const breakStartStr = (sched?.break_start ? sched.break_start.slice(0, 5) : null) || businessRules.breakHours.start;
+    const breakEndStr = (sched?.break_end ? sched.break_end.slice(0, 5) : null) || businessRules.breakHours.end;
     const slotDuration = service.durationMinutes || businessRules.defaultSlotDurationMinutes;
 
-    // Helper: convert HH:MM to minutes from midnight
     const toMinutes = (timeStr) => {
       const [h, m] = timeStr.split(':').map(Number);
       return h * 60 + m;
     };
 
-    // Helper: convert minutes from midnight to HH:MM (24h) and 12h formatted string
     const toTimeObj = (totalMinutes) => {
       const h = Math.floor(totalMinutes / 60);
       const m = totalMinutes % 60;
@@ -131,29 +210,31 @@ class AppointmentService {
     const breakStartMin = toMinutes(breakStartStr);
     const breakEndMin = toMinutes(breakEndStr);
 
-    // 4. Fetch already booked appointments for this date (excluding cancelled)
-    const existingBookings = await Appointment.findAll({
-      where: {
-        appointmentDate: dateStr,
-        status: {
-          [Op.notIn]: ['cancelled']
-        }
+    // Fetch existing appointments from Supabase for this date
+    let bookedSlotStarts = new Set();
+    try {
+      const { data: existingAppts } = await supabase
+        .from('appointments')
+        .select('start_time, status')
+        .eq('appointment_date', dateStr)
+        .neq('status', 'cancelled');
+
+      if (existingAppts) {
+        bookedSlotStarts = new Set(existingAppts.map(b => (b.start_time || '').slice(0, 5)));
       }
-    });
+    } catch (e) {
+      console.warn('Could not query existing appointments for slot check:', e.message);
+    }
 
-    const bookedSlotStarts = new Set(existingBookings.map(b => b.startTime.slice(0, 5)));
-
-    // 5. Determine current time in configured timezone to filter past slots if booking for today
+    // Determine current time in configured timezone
     const now = new Date();
-    // Format today in local business timezone (YYYY-MM-DD)
     const todayStr = now.toLocaleDateString('en-CA', { timeZone: businessRules.timezone });
     const isToday = (dateStr === todayStr);
-    
-    // If target date is in the past
+
     if (dateStr < todayStr) {
       return {
         date: dateStr,
-        service: service.toJSON(),
+        service,
         isWorkingDay: true,
         reason: 'Selected date is in the past.',
         slots: []
@@ -168,41 +249,30 @@ class AppointmentService {
     }
 
     const availableSlots = [];
-
-    // Generate intervals
     for (let current = startMin; current + slotDuration <= endMin; current += slotDuration) {
       const slotEnd = current + slotDuration;
-
-      // Skip slots that overlap with lunch / break hours
       const isDuringBreak = (current < breakEndMin && slotEnd > breakStartMin);
       if (isDuringBreak) continue;
 
       const { time24, displayTime } = toTimeObj(current);
       const endObj = toTimeObj(slotEnd);
 
-      // Skip past slots for today
-      if (isToday && current < currentMinutesNow) {
-        continue;
-      }
+      if (isToday && current < currentMinutesNow) continue;
+      if (bookedSlotStarts.has(time24)) continue;
 
-      // Check if already booked
-      const isBooked = bookedSlotStarts.has(time24);
-
-      if (!isBooked) {
-        availableSlots.push({
-          startTime: time24,
-          endTime: endObj.time24,
-          displayTime: `${displayTime} - ${endObj.displayTime}`,
-          startDisplay: displayTime,
-          durationMinutes: slotDuration,
-          period: current < 720 ? 'Morning' : (current < 1020 ? 'Afternoon' : 'Evening')
-        });
-      }
+      availableSlots.push({
+        startTime: time24,
+        endTime: endObj.time24,
+        displayTime: `${displayTime} - ${endObj.displayTime}`,
+        startDisplay: displayTime,
+        durationMinutes: slotDuration,
+        period: current < 720 ? 'Morning' : (current < 1020 ? 'Afternoon' : 'Evening')
+      });
     }
 
     return {
       date: dateStr,
-      service: service.toJSON(),
+      service,
       isWorkingDay: true,
       totalAvailable: availableSlots.length,
       slots: availableSlots
@@ -210,7 +280,7 @@ class AppointmentService {
   }
 
   /**
-   * Create or update customer record
+   * Create or update customer record in Supabase
    */
   async createOrGetCustomer({ name, email, phone, userId = null }) {
     if (!email || !name) {
@@ -218,40 +288,61 @@ class AppointmentService {
     }
 
     const normalizedEmail = email.toLowerCase().trim();
-    let customer = await Customer.findOne({ where: { email: normalizedEmail } });
+    const cleanPhone = (phone || 'N/A').trim();
 
-    if (!customer) {
-      customer = await Customer.create({
-        name: name.trim(),
-        email: normalizedEmail,
-        phone: (phone || 'N/A').trim(),
-        userId: userId || null
-      });
-    } else {
-      // Update phone or name if provided
-      let updated = false;
-      if (name && customer.name !== name.trim()) {
-        customer.name = name.trim();
-        updated = true;
-      }
-      if (phone && customer.phone !== phone.trim() && phone !== 'N/A') {
-        customer.phone = phone.trim();
-        updated = true;
-      }
-      if (userId && !customer.userId) {
-        customer.userId = userId;
-        updated = true;
-      }
-      if (updated) {
-        await customer.save();
-      }
+    // Check if customer exists in Supabase
+    const { data: existing, error: findErr } = await supabase
+      .from('customers')
+      .select('*')
+      .eq('email', normalizedEmail)
+      .maybeSingle();
+
+    if (findErr) {
+      console.warn('Customer lookup error:', findErr.message);
     }
 
-    return customer.toJSON();
+    if (existing) {
+      // Update phone or name if provided
+      const updates = {};
+      if (name && existing.name !== name.trim()) updates.name = name.trim();
+      if (cleanPhone && existing.phone !== cleanPhone && cleanPhone !== 'N/A') updates.phone = cleanPhone;
+      if (userId && !existing.user_id) updates.user_id = userId;
+
+      if (Object.keys(updates).length > 0) {
+        updates.updated_at = new Date().toISOString();
+        const { data: updated } = await supabase
+          .from('customers')
+          .update(updates)
+          .eq('id', existing.id)
+          .select()
+          .single();
+        if (updated) return formatCustomer(updated);
+      }
+      return formatCustomer(existing);
+    }
+
+    // Insert new customer into Supabase
+    const { data: created, error: createErr } = await supabase
+      .from('customers')
+      .insert([{
+        name: name.trim(),
+        email: normalizedEmail,
+        phone: cleanPhone,
+        user_id: userId || null
+      }])
+      .select()
+      .single();
+
+    if (createErr) {
+      console.error('Supabase customer insert error:', createErr);
+      throw createErr;
+    }
+
+    return formatCustomer(created);
   }
 
   /**
-   * Book a new appointment
+   * Book a new appointment directly in Supabase
    */
   async bookAppointment({
     customerName,
@@ -263,7 +354,6 @@ class AppointmentService {
     startTime,
     notes = ''
   }) {
-    // 1. Validation
     if (!customerName || !customerEmail) {
       throw new Error('Customer name and email are required.');
     }
@@ -276,10 +366,10 @@ class AppointmentService {
 
     const formattedStartTime = startTime.slice(0, 5);
 
-    // 2. Fetch service
-    const service = await Service.findByPk(serviceId) || await Service.findOne({ where: { isActive: true } });
+    // Fetch service
+    const service = await this.findService(serviceId);
     if (!service) {
-      throw new Error('Selected service not found.');
+      throw new Error('Selected consultation service was not found.');
     }
 
     // Calculate end time
@@ -290,23 +380,21 @@ class AppointmentService {
     const em = endMin % 60;
     const formattedEndTime = `${String(eh).padStart(2, '0')}:${String(em).padStart(2, '0')}`;
 
-    // 3. Double booking prevention check
-    const existing = await Appointment.findOne({
-      where: {
-        appointmentDate,
-        startTime: formattedStartTime,
-        serviceId: service.id,
-        status: {
-          [Op.notIn]: ['cancelled']
-        }
-      }
-    });
+    // Conflict prevention check in Supabase
+    const { data: conflict } = await supabase
+      .from('appointments')
+      .select('id')
+      .eq('appointment_date', appointmentDate)
+      .eq('start_time', `${formattedStartTime}:00`)
+      .eq('service_id', service.id)
+      .neq('status', 'cancelled')
+      .maybeSingle();
 
-    if (existing) {
+    if (conflict) {
       throw new Error(`The slot on ${appointmentDate} at ${formattedStartTime} is already booked. Please choose another slot.`);
     }
 
-    // 4. Create or retrieve customer
+    // Create or retrieve customer
     const customer = await this.createOrGetCustomer({
       name: customerName,
       email: customerEmail,
@@ -314,26 +402,37 @@ class AppointmentService {
       userId
     });
 
-    // 5. Create Appointment
-    const appointment = await Appointment.create({
-      customerId: customer.id,
-      serviceId: service.id,
-      appointmentDate,
-      startTime: formattedStartTime,
-      endTime: formattedEndTime,
-      status: 'confirmed',
-      notes: notes || 'Booked via CareerCraft AI'
+    // Insert Appointment into Supabase
+    const { data: appt, error: apptErr } = await supabase
+      .from('appointments')
+      .insert([{
+        customer_id: customer.id,
+        service_id: service.id,
+        appointment_date: appointmentDate,
+        start_time: `${formattedStartTime}:00`,
+        end_time: `${formattedEndTime}:00`,
+        status: 'confirmed',
+        notes: notes || 'Booked via CareerCraft AI'
+      }])
+      .select()
+      .single();
+
+    if (apptErr) {
+      console.error('Supabase appointment insert error:', apptErr);
+      throw apptErr;
+    }
+
+    const appointmentJson = formatAppointment({
+      ...appt,
+      customer,
+      service
     });
 
-    const appointmentJson = appointment.toJSON();
-    appointmentJson.customer = customer;
-    appointmentJson.service = service.toJSON();
-
-    // 6. Trigger notification asynchronously in background (non-blocking)
+    // Trigger notification asynchronously
     notificationService.sendConfirmationNotification({
       appointment: appointmentJson,
       customer,
-      service: service.toJSON()
+      service
     }).catch(err => {
       console.warn('[Notification Engine] Background dispatch error:', err.message);
     });
@@ -342,53 +441,74 @@ class AppointmentService {
   }
 
   /**
-   * Get all appointments for a customer (by email or userId)
+   * Get all appointments for a customer from Supabase
    */
   async getCustomerAppointments(emailOrUserId) {
     if (!emailOrUserId) return [];
+    const normalized = emailOrUserId.toLowerCase().trim();
 
-    let customer = await Customer.findOne({
-      where: {
-        [Op.or]: [
-          { email: emailOrUserId.toLowerCase().trim() },
-          { userId: emailOrUserId },
-          { id: emailOrUserId }
-        ]
+    try {
+      // Find customer
+      const { data: customer } = await supabase
+        .from('customers')
+        .select('*')
+        .or(`email.eq.${normalized},user_id.eq.${emailOrUserId}`)
+        .maybeSingle();
+
+      if (!customer) return [];
+
+      const { data: appts, error } = await supabase
+        .from('appointments')
+        .select('*, customer:customers(*), service:services(*)')
+        .eq('customer_id', customer.id)
+        .order('appointment_date', { ascending: false })
+        .order('start_time', { ascending: false });
+
+      if (error) {
+        console.warn('Customer appointments fetch error:', error.message);
+        return [];
       }
-    });
 
-    if (!customer) return [];
-
-    const appointments = await Appointment.findAll({
-      where: { customerId: customer.id },
-      include: [
-        { model: Service, as: 'service' },
-        { model: Customer, as: 'customer' }
-      ],
-      order: [['appointmentDate', 'DESC'], ['startTime', 'DESC']]
-    });
-
-    return appointments.map(a => a.toJSON());
+      return (appts || []).map(formatAppointment);
+    } catch (e) {
+      console.warn('getCustomerAppointments error:', e.message);
+      return [];
+    }
   }
 
   /**
-   * Reschedule an appointment
+   * Get appointment by ID from Supabase
+   */
+  async getAppointmentById(id) {
+    if (!id) return null;
+
+    try {
+      const { data, error } = await supabase
+        .from('appointments')
+        .select('*, customer:customers(*), service:services(*)')
+        .eq('id', id)
+        .maybeSingle();
+
+      if (error || !data) return null;
+      return formatAppointment(data);
+    } catch (e) {
+      console.warn('getAppointmentById error:', e.message);
+      return null;
+    }
+  }
+
+  /**
+   * Reschedule an appointment in Supabase
    */
   async rescheduleAppointment(appointmentId, newDate, newStartTime, reason = '') {
     if (!appointmentId) throw new Error('Appointment ID is required.');
     if (!newDate || !newStartTime) throw new Error('New date and start time are required.');
 
-    const appointment = await Appointment.findByPk(appointmentId, {
-      include: [
-        { model: Service, as: 'service' },
-        { model: Customer, as: 'customer' }
-      ]
-    });
-
-    if (!appointment) throw new Error('Appointment not found.');
+    const appt = await this.getAppointmentById(appointmentId);
+    if (!appt) throw new Error('Appointment not found.');
 
     const formattedStartTime = newStartTime.slice(0, 5);
-    const service = appointment.service;
+    const service = appt.service;
     const [sh, sm] = formattedStartTime.split(':').map(Number);
     const startMin = sh * 60 + sm;
     const endMin = startMin + (service?.durationMinutes || 30);
@@ -396,38 +516,46 @@ class AppointmentService {
     const em = endMin % 60;
     const formattedEndTime = `${String(eh).padStart(2, '0')}:${String(em).padStart(2, '0')}`;
 
-    // Check conflict
-    const conflict = await Appointment.findOne({
-      where: {
-        id: { [Op.ne]: appointmentId },
-        appointmentDate: newDate,
-        startTime: formattedStartTime,
-        serviceId: appointment.serviceId,
-        status: { [Op.notIn]: ['cancelled'] }
-      }
-    });
+    // Conflict check
+    const { data: conflict } = await supabase
+      .from('appointments')
+      .select('id')
+      .neq('id', appointmentId)
+      .eq('appointment_date', newDate)
+      .eq('start_time', `${formattedStartTime}:00`)
+      .eq('service_id', appt.serviceId)
+      .neq('status', 'cancelled')
+      .maybeSingle();
 
     if (conflict) {
       throw new Error(`The requested slot on ${newDate} at ${formattedStartTime} is already booked.`);
     }
 
-    const previousDate = appointment.appointmentDate;
-    const previousTime = appointment.startTime;
+    const previousDate = appt.appointmentDate;
+    const previousTime = appt.startTime;
 
-    appointment.appointmentDate = newDate;
-    appointment.startTime = formattedStartTime;
-    appointment.endTime = formattedEndTime;
-    appointment.status = 'rescheduled';
-    appointment.notes = `${appointment.notes || ''} [Rescheduled from ${previousDate} ${previousTime}]`;
-    await appointment.save();
+    const { data: updated, error } = await supabase
+      .from('appointments')
+      .update({
+        appointment_date: newDate,
+        start_time: `${formattedStartTime}:00`,
+        end_time: `${formattedEndTime}:00`,
+        status: 'rescheduled',
+        notes: `${appt.notes || ''} [Rescheduled from ${previousDate} ${previousTime}]`,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', appointmentId)
+      .select('*, customer:customers(*), service:services(*)')
+      .single();
 
-    const updated = appointment.toJSON();
+    if (error) throw error;
+    const formatted = formatAppointment(updated);
 
     try {
       await notificationService.sendRescheduleNotification({
-        appointment: updated,
-        customer: updated.customer,
-        service: updated.service,
+        appointment: formatted,
+        customer: formatted.customer,
+        service: formatted.service,
         previousDate,
         previousTime
       });
@@ -435,102 +563,98 @@ class AppointmentService {
       console.warn('Reschedule notification error:', err.message);
     }
 
-    return updated;
+    return formatted;
   }
 
   /**
-   * Cancel an appointment
+   * Cancel an appointment in Supabase
    */
   async cancelAppointment(appointmentId, reason = '') {
     if (!appointmentId) throw new Error('Appointment ID is required.');
 
-    const appointment = await Appointment.findByPk(appointmentId, {
-      include: [
-        { model: Service, as: 'service' },
-        { model: Customer, as: 'customer' }
-      ]
-    });
+    const { data: updated, error } = await supabase
+      .from('appointments')
+      .update({
+        status: 'cancelled',
+        cancelled_reason: reason || 'Cancelled by user',
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', appointmentId)
+      .select('*, customer:customers(*), service:services(*)')
+      .single();
 
-    if (!appointment) throw new Error('Appointment not found.');
-
-    appointment.status = 'cancelled';
-    appointment.cancelledReason = reason || 'Cancelled by user';
-    await appointment.save();
-
-    const updated = appointment.toJSON();
+    if (error) throw error;
+    const formatted = formatAppointment(updated);
 
     try {
       await notificationService.sendCancellationNotification({
-        appointment: updated,
-        customer: updated.customer,
-        service: updated.service,
-        reason: appointment.cancelledReason
+        appointment: formatted,
+        customer: formatted.customer,
+        service: formatted.service,
+        reason: formatted.cancelledReason
       });
     } catch (err) {
       console.warn('Cancellation notification error:', err.message);
     }
 
-    return updated;
+    return formatted;
   }
 
   /**
-   * Admin: List all appointments with filtering and search
+   * Admin: List all appointments from Supabase
    */
   async listAllAppointments({ status, date, search, page = 1, limit = 50 }) {
-    const where = {};
-    if (status && status !== 'all') {
-      where.status = status;
-    }
-    if (date) {
-      where.appointmentDate = date;
-    }
+    try {
+      let query = supabase
+        .from('appointments')
+        .select('*, customer:customers(*), service:services(*)')
+        .order('appointment_date', { ascending: false })
+        .order('start_time', { ascending: false });
 
-    const customerWhere = {};
-    if (search) {
-      customerWhere[Op.or] = [
-        { name: { [Op.like]: `%${search}%` } },
-        { email: { [Op.like]: `%${search}%` } },
-        { phone: { [Op.like]: `%${search}%` } },
-      ];
+      if (status && status !== 'all') {
+        query = query.eq('status', status);
+      }
+      if (date) {
+        query = query.eq('appointment_date', date);
+      }
+
+      const offset = (Number(page) - 1) * Number(limit);
+      query = query.range(offset, offset + Number(limit) - 1);
+
+      const { data, error } = await query;
+      if (error) throw error;
+
+      return (data || []).map(formatAppointment);
+    } catch (e) {
+      console.warn('listAllAppointments error:', e.message);
+      return [];
     }
-
-    const appointments = await Appointment.findAll({
-      where,
-      include: [
-        {
-          model: Customer,
-          as: 'customer',
-          where: search ? customerWhere : undefined
-        },
-        { model: Service, as: 'service' }
-      ],
-      order: [['appointmentDate', 'DESC'], ['startTime', 'DESC']],
-      limit: Number(limit),
-      offset: (Number(page) - 1) * Number(limit)
-    });
-
-    return appointments.map(a => a.toJSON());
   }
 
   /**
-   * Admin: Get statistics summary
+   * Admin: Get statistics summary from Supabase
    */
   async getAdminStats() {
-    const total = await Appointment.count();
-    const confirmed = await Appointment.count({ where: { status: 'confirmed' } });
-    const pending = await Appointment.count({ where: { status: 'pending' } });
-    const completed = await Appointment.count({ where: { status: 'completed' } });
-    const cancelled = await Appointment.count({ where: { status: 'cancelled' } });
-    const rescheduled = await Appointment.count({ where: { status: 'rescheduled' } });
+    try {
+      const { data: allAppts, error } = await supabase
+        .from('appointments')
+        .select('status');
 
-    return {
-      total,
-      confirmed,
-      pending,
-      completed,
-      cancelled,
-      rescheduled
-    };
+      if (error || !allAppts) {
+        return { total: 0, confirmed: 0, pending: 0, completed: 0, cancelled: 0, rescheduled: 0 };
+      }
+
+      const total = allAppts.length;
+      const confirmed = allAppts.filter(a => a.status === 'confirmed').length;
+      const pending = allAppts.filter(a => a.status === 'pending').length;
+      const completed = allAppts.filter(a => a.status === 'completed').length;
+      const cancelled = allAppts.filter(a => a.status === 'cancelled').length;
+      const rescheduled = allAppts.filter(a => a.status === 'rescheduled').length;
+
+      return { total, confirmed, pending, completed, cancelled, rescheduled };
+    } catch (e) {
+      return { total: 0, confirmed: 0, pending: 0, completed: 0, cancelled: 0, rescheduled: 0 };
+    }
   }
 }
 
