@@ -1,6 +1,6 @@
 -- ========================================================================
 -- CAREERCRAFT FULL DATABASE SCHEMA MIGRATION SCRIPT
--- Project Ref: msxafjwdyfnskhnfzzef
+-- Project Ref: uwmhfvsqpzylaxrnlhhw
 -- Target: Supabase Postgres SQL Editor
 -- Instructions: Copy this entire script, paste into Supabase SQL Editor, and click "Run".
 -- ========================================================================
